@@ -96,9 +96,7 @@ export class App {
 	 * )
 	 * ```
 	 */
-	spawn<
-		const Pairs extends [Entity<unknown>, unknown][]
-	>(
+	spawn<const Pairs extends [Entity<unknown>, unknown][]>(
 		...components: {
 			[I in keyof Pairs]: Pairs[I] extends [infer E, infer V]
 				? E extends Entity<infer T>
@@ -106,7 +104,7 @@ export class App {
 						? [E, V]
 						: never
 					: never
-				: never;
+				: never
 		}
 	): Entity
 
@@ -117,7 +115,7 @@ export class App {
 			const [component, value] = args as [Entity<unknown>, unknown]
 			this.set(entity, component, value)
 		} else {
-			args.forEach(pair => {
+			args.forEach((pair) => {
 				const [component, value] = pair as [Entity<unknown>, unknown]
 				this.set(entity, component, value)
 			})
