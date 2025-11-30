@@ -1,5 +1,5 @@
 import { Entity, Id, InferComponent, StatefulHook, StatelessHook, world, World } from '@rbxts/jecs'
-import { Phase, Pipeline, Scheduler } from '@rbxts/planck'
+import { Phase, Scheduler } from '@rbxts/planck'
 import { stdPhases, stdPipelines } from './stdPhases'
 import { RunService } from '@rbxts/services'
 import { findSystems, System } from './system'
@@ -14,6 +14,16 @@ export class App {
 	private scheduler: Scheduler<[App]> = new Scheduler(this)
 	private plugins: Plugin[] = []
 
+	/**
+	 * Creates a new app, which handles the ECS world and scheduler.
+	 * @example
+	 * ```ts
+	 * const app = new App()
+	 *     .addSystems(updateStamina, logPositions)
+	 *     .addPlugins(movementPlugin)
+	 *     .start()
+	 * ```
+	 */
 	constructor() {
 		// Set up standard pipelines and phases.
 		this.scheduler
@@ -27,12 +37,37 @@ export class App {
 		this.addPlugins(...stdPlugins)
 	}
 
+	/**
+	 * Automatically adds systems and plugins found within the given source Instances.
+	 *
+	 * In order for systems and plugins to be found, they must be properly created and
+	 * exported as default from ModuleScripts within the given sources.
+	 *
+	 * @param sources The source Instances to search for systems and plugins.
+	 * @returns The app instance for chaining.
+	 * @example
+	 * ```ts
+	 * // ReplicatedStorage/health/updateHealth.ts
+	 * export default system(updateHealth, stdPhases.update)
+	 *
+	 * // ReplicatedStorage/movement/movementPlugin.ts
+	 * export default plugin(buildMovementPlugin)
+	 *
+	 * // main.ts
+	 * const app = new App().addSources(ReplicatedStorage)
+	 * ```
+	 */
 	addSources(...sources: Instance[]): this {
 		this.addSystems(...findSystems(sources))
 		this.addPlugins(...findPlugins(sources))
 		return this
 	}
 
+	/**
+	 * Adds systems to the app, which start running on their respective phases after `app.start()`.
+	 * @param systems The systems to add.
+	 * @returns The app instance for chaining.
+	 */
 	addSystems(...systems: System[]): this {
 		systems.forEach((system) => {
 			const wrappedFn = (app: App) => {
@@ -50,11 +85,22 @@ export class App {
 		return this
 	}
 
+	/**
+	 * Adds plugins to the app, which are built after `app.start()`.
+	 * @param plugins The plugins to add.
+	 * @returns The app instance for chaining.
+	 */
 	addPlugins(...plugins: Plugin[]): this {
 		this.plugins.push(...plugins)
 		return this
 	}
 
+	/**
+	 * Adds a new phase after an existing phase in the scheduler.
+	 * @param phase The new phase to add.
+	 * @param after The existing phase to add after (except for `stdPhases.last`).
+	 * @returns The app instance for chaining.
+	 */
 	addPhaseAfter(phase: Phase, after: Phase): this {
 		// Reason: maintains the meaning of "first" and "last" phases, while also making
 		// sure `internalPhases.{absoluteFirst, absoluteLast}` remain at the absolute ends.
@@ -66,6 +112,12 @@ export class App {
 		return this
 	}
 
+	/**
+	 * Adds a new phase before an existing phase in the scheduler.
+	 * @param phase The new phase to add.
+	 * @param before The existing phase to add before (except for `stdPhases.first`).
+	 * @returns The app instance for chaining.
+	 */
 	addPhaseBefore(phase: Phase, before: Phase): this {
 		// Reason: same as in `addPhaseAfter`.
 		if (before === stdPhases.first) {
@@ -76,6 +128,10 @@ export class App {
 		return this
 	}
 
+	/**
+	 * Builds all added plugins and starts the app's scheduler, running all
+	 * systems on their respective phases.
+	 */
 	start(): this {
 		// Must run before we run the scheduler to ensure plugins can add systems beforehand.
 		this.plugins.forEach((plugin) => {
