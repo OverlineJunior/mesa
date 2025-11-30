@@ -20,6 +20,11 @@ export const stdPhases = {
 	postSimulation: new Phase('postSimulation'),
 }
 
+export const internalPhases = {
+	absoluteFirst: new Phase('absoluteFirst'),
+	absoluteLast: new Phase('absoluteLast'),
+}
+
 export const stdPipelines = {
 	startup: new Pipeline('startupPipeline')
 		.insert(stdPhases.preStartup)
@@ -27,9 +32,11 @@ export const stdPipelines = {
 		.insert(stdPhases.postStartup),
 
 	update: new Pipeline('updatePipeline')
+		.insert(internalPhases.absoluteFirst)
 		.insert(stdPhases.first)
 		.insert(stdPhases.preUpdate)
 		.insert(stdPhases.update)
 		.insert(stdPhases.postUpdate)
-		.insert(stdPhases.last),
+		.insert(stdPhases.last)
+		.insert(internalPhases.absoluteLast),
 }

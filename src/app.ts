@@ -57,12 +57,23 @@ export class App {
 		return this
 	}
 
-	addPhaseAfter(phase: Phase, after: Phase | Pipeline): this {
+	addPhaseAfter(phase: Phase, after: Phase): this {
+		// Reason: maintains the meaning of "first" and "last" phases, while also making
+		// sure `internalPhases.{absoluteFirst, absoluteLast}` remain at the absolute ends.
+		if (after === stdPhases.last) {
+			error("Inserting phases after `stdPhases.last` is not allowed.")
+		}
+
 		this.scheduler.insertAfter(phase, after)
 		return this
 	}
 
-	addPhaseBefore(phase: Phase, before: Phase | Pipeline): this {
+	addPhaseBefore(phase: Phase, before: Phase): this {
+		// Reason: same as in `addPhaseAfter`.
+		if (before === stdPhases.first) {
+			error("Inserting phases before `stdPhases.first` is not allowed.")
+		}
+
 		this.scheduler.insertBefore(phase, before)
 		return this
 	}
