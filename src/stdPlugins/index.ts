@@ -1,3 +1,3 @@
-import topoRuntimePlugin from './topoRuntimePlugin'
+import { TopoRuntimePlugin } from './topoRuntimePlugin'
 
-export const stdPlugins = [topoRuntimePlugin]
+export const stdPlugins = [new TopoRuntimePlugin()]

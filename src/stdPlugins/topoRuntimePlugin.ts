@@ -1,12 +1,14 @@
-import { plugin } from '../plugin'
+import { App } from '../app'
+import { Plugin } from '../plugin'
 import { internalPhases } from '../stdPhases'
-import { system } from '../system'
 import { cleanupHookState } from '../topoRuntime'
 
 function topoRuntimeCleanup() {
 	cleanupHookState()
 }
 
-export default plugin((app) => {
-	app.addSystems(system(topoRuntimeCleanup, internalPhases.absoluteLast))
-})
+export class TopoRuntimePlugin implements Plugin {
+	build(app: App): void {
+		app.addSystems(internalPhases.absoluteLast, topoRuntimeCleanup)
+	}
+}

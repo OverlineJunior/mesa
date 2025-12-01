@@ -1,8 +1,8 @@
 export { App } from './app'
 
-export { system } from './system'
+export type { World } from './world'
 
-export { plugin } from './plugin'
+export { Plugin } from './plugin'
 
 export { stdPhases, stdPipelines } from './stdPhases'
 
