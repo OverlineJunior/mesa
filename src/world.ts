@@ -1,4 +1,4 @@
-import { World as Ecs, world as newEcs, Entity, Id, StatefulHook, StatelessHook, InferComponent, Tag, Pair } from '@rbxts/jecs'
+import { World as Ecs, world as newEcs, Entity, Id, InferComponent, Tag, Pair } from '@rbxts/jecs'
 
 export class World {
 	private ecs: Ecs = newEcs()
@@ -7,21 +7,21 @@ export class World {
 	 * Spawns a new, empty entity and returns it.
 	 */
 	spawn(): Entity
-
 	/**
 	 * Spawns a new entity with a single component and value, and returns it.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * const entity = app.spawn(Name, 'Bob')
 	 * ```
 	 */
 	spawn<V>(component: Entity<V>, value: V): Entity
-
 	/**
 	 * Spawns a new entity with multiple components and values, and returns it.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * const entity = app.spawn(
 	 *     [Health, 100],
@@ -41,7 +41,6 @@ export class World {
 				: never
 		}
 	): Entity
-
 	spawn(...args: defined[]): Entity {
 		const entity = this.ecs.entity()
 
@@ -58,32 +57,31 @@ export class World {
 		return entity
 	}
 
-
 	/**
 	 * Assigns a value to a component on the given entity.
 	 *
-	 * @Example
+	 * # Example
+	 *
 	 * ```ts
 	 * app.set(entity, Health, 100)
-	 * ```
-	 *
-	 * Additionally, one can also set relationship pairs:
-	 * @Example
-	 * ```ts
-	 * app.set(bob, pair(ChildOf, alice))
 	 * ```
 	 */
 	set<Comp extends Id<unknown>>(entity: Entity, component: Comp, value: InferComponent<Comp>): void
 	/**
 	 * Assigns a tag component on the given entity.
 	 *
-	 * @Example
+	 * # Example
+	 *
 	 * ```ts
 	 * app.set(entity, IsAlive)
 	 * ```
 	 *
+	 * ---
+	 *
+	 * # Setting relationships
+	 *
 	 * Additionally, one can also set relationship pairs:
-	 * @Example
+	 *
 	 * ```ts
 	 * app.set(bob, pair(ChildOf, alice))
 	 * ```
@@ -107,7 +105,8 @@ export class World {
 	/**
 	 * Searches the world for entities that match specified components.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * for (const [entity, position, velocity] of app.query(Position, Velocity)) {
 	 *     // ...
@@ -119,7 +118,8 @@ export class World {
 	 * Retrieves the values of up to 4 components on a given entity. Missing
 	 * components will return `undefined`.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * const [position, velocity] = app.get(entity, Position, Velocity)
 	 * ```
@@ -130,7 +130,8 @@ export class World {
 	 * Returns `true` if the given entity has all of the specified components.
 	 * A maximum of 4 components can be checked at once.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * if (app.has(entity, Position, Velocity)) {
 	 *     // ...
@@ -145,7 +146,8 @@ export class World {
 	 * @param relation The "relationship" component/tag (e.g., ChildOf).
 	 * @param index If multiple targets exist, specify an index. Defaults to 0.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * const parent = app.target(child, ChildOf) // Get the parent of `child`.
 	 * ```
@@ -156,7 +158,8 @@ export class World {
 	 * Gets the parent (the target of a `ChildOf` relationship) for an entity,
 	 * if such a relationship exists.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * const parent = app.parent(child)
 	 * ```
@@ -180,14 +183,15 @@ export class World {
 
 	/**
 	 * Clears all components and relationships from the given entity, but
-	 * does not delete the entity from the this.ecs.
+	 * does not delete the entity from the world.
 	 */
 	clear = ((...args) => this.ecs.clear(...args)) as Ecs['clear']
 
 	/**
 	 * Returns an iterator that yields all entities that have the specified component or relationship.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * for (const entity of app.each(Health)) {
 	 *     // ...
@@ -200,7 +204,8 @@ export class World {
 	 * Returns an iterator that yields all child entities of the specified parent entity.
 	 * Uses the ChildOf relationship internally.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
 	 * for (const child of app.children(parent)) {
 	 *     // ...
@@ -212,9 +217,11 @@ export class World {
 	/**
 	 * Enforces a check for entities to be created within a desired range.
 	 *
-	 * Example:
+	 * # Example
+	 *
 	 * ```ts
-	 * app.range(0, 100) // Only allow entity IDs between 0 and 100.
+	 * // Only allow entity IDs between 0 and 100.
+	 * app.range(0, 100)
 	 * ```
 	 */
 	range = ((...args) => this.ecs.range(...args)) as Ecs['range']
