@@ -108,7 +108,7 @@ export class App {
 		// Reason: maintains the meaning of "first" and "last" phases, while also making
 		// sure `internalPhases.{absoluteFirst, absoluteLast}` remain at the absolute ends.
 		if (after === stdPhases.last) {
-			error("Inserting phases after `stdPhases.last` is not allowed.")
+			error('Inserting phases after `stdPhases.last` is not allowed.')
 		}
 
 		this.scheduler.insertAfter(phase, after)
@@ -124,7 +124,7 @@ export class App {
 	addPhaseBefore(phase: Phase, before: Phase): this {
 		// Reason: same as in `addPhaseAfter`.
 		if (before === stdPhases.first) {
-			error("Inserting phases before `stdPhases.first` is not allowed.")
+			error('Inserting phases before `stdPhases.first` is not allowed.')
 		}
 
 		this.scheduler.insertBefore(phase, before)
@@ -206,7 +206,7 @@ export class App {
 	// -------------------------------------------------------------------------
 
 	// For some unknown reason, when re-exporting as methods, something like
-	// `query: typeof this.world.query = (...args) => this.world.query(...args)`
+	// `query: World['query'] = (...args) => this.world.query(...args)`
 	// causes completely different results. We use this workaround in other places.
 	/**
 	 * Searches the world for entities that match specified components.
@@ -217,7 +217,7 @@ export class App {
 	 *     // ...
 	 * }
 	 */
-	query = ((...args: Id[]) => this.world.query(...args)) as typeof this.world.query
+	query = ((...args: Id[]) => this.world.query(...args)) as World['query']
 
 	/**
 	 * Retrieves the values of up to 4 components on a given entity. Missing
@@ -228,7 +228,7 @@ export class App {
 	 * const [position, velocity] = app.get(entity, Position, Velocity)
 	 * ```
 	 */
-	get = ((e: Entity, ...args: [Id]) => this.world.get(e, ...args)) as typeof this.world.get
+	get = ((e: Entity, ...args: [Id]) => this.world.get(e, ...args)) as World['get']
 
 	/**
 	 * Returns `true` if the given entity has all of the specified components.
@@ -241,7 +241,7 @@ export class App {
 	 * }
 	 * ```
 	 */
-	has = ((...args) => this.world.has(...args)) as typeof this.world.has
+	has = ((...args) => this.world.has(...args)) as World['has']
 
 	/**
 	 * Adds a component (with no value) to the entity.
@@ -251,7 +251,7 @@ export class App {
 	 * app.add(entity, IsAlive)
 	 * ```
 	 */
-	add = ((...args) => this.world.add(...args)) as typeof this.world.add
+	add = ((...args) => this.world.add(...args)) as World['add']
 
 	/**
 	 * Installs a hook on the given component.
@@ -290,7 +290,7 @@ export class App {
 	 * const parent = app.target(child, ChildOf) // Get the parent of `child`.
 	 * ```
 	 */
-	target = ((...args) => this.world.target(...args)) as typeof this.world.target
+	target = ((...args) => this.world.target(...args)) as World['target']
 
 	/**
 	 * Gets the parent (the target of a `ChildOf` relationship) for an entity,
@@ -301,28 +301,28 @@ export class App {
 	 * const parent = app.parent(child)
 	 * ```
 	 */
-	parent = ((...args) => this.world.parent(...args)) as typeof this.world.parent
+	parent = ((...args) => this.world.parent(...args)) as World['parent']
 
 	/**
 	 * Checks if an entity exists in the this.world.
 	 */
-	contains = ((...args) => this.world.contains(...args)) as typeof this.world.contains
+	contains = ((...args) => this.world.contains(...args)) as World['contains']
 
 	/**
 	 * Removes a component from the given entity.
 	 */
-	remove = ((...args) => this.world.remove(...args)) as typeof this.world.remove
+	remove = ((...args) => this.world.remove(...args)) as World['remove']
 
 	/**
 	 * Deletes an entity (and its components/relationships) from the world entirely.
 	 */
-	delete = ((...args) => this.world.delete(...args)) as typeof this.world.delete
+	delete = ((...args) => this.world.delete(...args)) as World['delete']
 
 	/**
 	 * Clears all components and relationships from the given entity, but
 	 * does not delete the entity from the this.world.
 	 */
-	clear = ((...args) => this.world.clear(...args)) as typeof this.world.clear
+	clear = ((...args) => this.world.clear(...args)) as World['clear']
 
 	/**
 	 * Returns an iterator that yields all entities that have the specified component or relationship.
@@ -334,7 +334,7 @@ export class App {
 	 * }
 	 * ```
 	 */
-	each = ((...args) => this.world.each(...args)) as typeof this.world.each
+	each = ((...args) => this.world.each(...args)) as World['each']
 
 	/**
 	 * Returns an iterator that yields all child entities of the specified parent entity.
@@ -347,7 +347,7 @@ export class App {
 	 * }
 	 * ```
 	 */
-	children = ((...args) => this.world.children(...args)) as typeof this.world.children
+	children = ((...args) => this.world.children(...args)) as World['children']
 
 	/**
 	 * Enforces a check for entities to be created within a desired range.
@@ -357,5 +357,5 @@ export class App {
 	 * app.range(0, 100) // Only allow entity IDs between 0 and 100.
 	 * ```
 	 */
-	range = ((...args) => this.world.range(...args)) as typeof this.world.range
+	range = ((...args) => this.world.range(...args)) as World['range']
 }
