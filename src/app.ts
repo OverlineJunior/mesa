@@ -8,21 +8,23 @@ import { World } from './world'
 
 export type SystemDeltaTimes = Map<System, number>
 
+/**
+ * Stores and exposes operations on _systems_, _plugins_ and _phases_.
+ *
+ * # Example
+ *
+ * ```ts
+ * const app = new App()
+ *     .addSystems(stdPhases.update, updateStamina, logPositions)
+ *     .addPlugins(movementPlugin)
+ *     .run()
+ * ```
+ */
 export class App {
 	readonly systemDeltaTimes: SystemDeltaTimes = new Map()
 	private scheduler: Scheduler<[World]> = new Scheduler(new World())
 	private plugins: Plugin[] = []
 
-	/**
-	 * Creates a new app, which handles the ECS world and scheduler.
-	 * @example
-	 * ```ts
-	 * const app = new App()
-	 *     .addSystems(updateStamina, logPositions)
-	 *     .addPlugins(movementPlugin)
-	 *     .start()
-	 * ```
-	 */
 	constructor() {
 		// Set up standard pipelines and phases.
 		this.scheduler
@@ -37,9 +39,16 @@ export class App {
 	}
 
 	/**
-	 * Adds systems to the app, which start running on their respective phases after `app.start()`.
-	 * @param systems The systems to add.
-	 * @returns The app instance for chaining.
+	 * Adds _systems_ to the app on a specified _phase_. They're ran automatically on `app.run()`.
+	 *
+	 * # Example
+	 *
+	 * ```ts
+	 * function updateHealth(world: World) { }
+	 * function logPositions(world: World) { }
+	 *
+	 * app.addSystems(stdPhases.update, updateHealth, logPositions)
+	 * ```
 	 */
 	addSystems(phase: Phase, ...systems: SystemFn[]): this {
 		systems.forEach((systemFn) => {
@@ -61,9 +70,17 @@ export class App {
 	}
 
 	/**
-	 * Adds plugins to the app, which are built after `app.start()`.
-	 * @param plugins The plugins to add.
-	 * @returns The app instance for chaining.
+	 * Adds _plugins_ to the app, which are built on `app.run()`.
+	 *
+	 * # Example
+	 *
+	 * ```ts
+	 * class MovementPlugin implements Plugin {
+	 *     build(app: App): void { }
+	 * }
+	 *
+	 * app.addPlugins(new MovementPlugin())
+	 * ```
 	 */
 	addPlugins(...plugins: Plugin[]): this {
 		plugins.forEach((plugin) => {
@@ -74,10 +91,7 @@ export class App {
 	}
 
 	/**
-	 * Adds a new phase after an existing phase in the scheduler.
-	 * @param phase The new phase to add.
-	 * @param after The existing phase to add after (except for `stdPhases.last`).
-	 * @returns The app instance for chaining.
+	 * Adds a new _phase_ to be ran after another (except for `stdPhases.last`).
 	 */
 	addPhaseAfter(phase: Phase, after: Phase): this {
 		// Reason: maintains the meaning of "first" and "last" phases, while also making
@@ -91,10 +105,7 @@ export class App {
 	}
 
 	/**
-	 * Adds a new phase before an existing phase in the scheduler.
-	 * @param phase The new phase to add.
-	 * @param before The existing phase to add before (except for `stdPhases.first`).
-	 * @returns The app instance for chaining.
+	 * Adds a new _phase_ to be ran before another (except for `stdPhases.first`).
 	 */
 	addPhaseBefore(phase: Phase, before: Phase): this {
 		// Reason: same as in `addPhaseAfter`.
@@ -107,8 +118,8 @@ export class App {
 	}
 
 	/**
-	 * Builds all added plugins and starts the app's scheduler, running all
-	 * systems on their respective phases.
+	 * Builds all added _plugins_ and starts the app's scheduler, running all
+	 * _systems_ on their respective phases.
 	 */
 	run(): void {
 		// Must run before we run the scheduler to ensure plugins can add systems beforehand.

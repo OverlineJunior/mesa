@@ -2,7 +2,21 @@ import { useHookState } from "../topoRuntime"
 
 /**
  * Returns the `os.clock()` time delta between the start of this and the last frame.
- * @returns The time delta in seconds.
+ *
+ * # Example
+ *
+ * ```ts
+ * function liftAll(world: World) {
+ *     for (const [entity, position] of world.query(Position)) {
+ *         world.set(
+ * 		    entity,
+ *             Position,
+ * 			// We use delta time to make the movement frame-independent.
+ *             position.add(Vector3.up).mul(useDeltaTime())
+ *         )
+ *     }
+ * }
+ * ```
  */
 export function useDeltaTime(): number {
 	const state = useHookState(

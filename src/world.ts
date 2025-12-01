@@ -1,5 +1,8 @@
 import { World as Ecs, world as newEcs, Entity, Id, InferComponent, Tag, Pair } from '@rbxts/jecs'
 
+/**
+ * Stores and exposes operations on _entities_ and _components_.
+ */
 export class World {
 	private ecs: Ecs = newEcs()
 

@@ -1,15 +1,25 @@
 import { useHookState } from "../topoRuntime"
 
 /**
- * Utility for easy time-based throttling.
+ * Throttles execution based on a time interval in seconds.
  *
- * Accepts a duration, and returns `true` if it has been that long since the last time this function returned `true`.
- * Always returns `true` the first time.
+ * Returns `true` if the specified time interval has passed since the last `true` return,
+ * otherwise returns `false`.
  *
- * Differently from Matter's `useThrottle`, this function returns unique results keyed by call count too, meaning each iteration in a loop will have its own throttle state.
- * @param seconds The duration in seconds to wait before returning `true` again.
- * @param identifier An optional identifier to differentiate between different throttles in the same hook call. Use a constant value to achieve Matter's behavior.
- * @returns `true` if the throttle has expired, `false` otherwise. Always returns `true` the first time.
+ * An optional `identifier` can be provided to create separate throttle states for different usages.
+ *
+ * # Example
+ *
+ * ```ts
+ * function logNames(world: World) {
+ *     for (const [_, name] of world.query(Name)) {
+ *         // This log will only occur once per second per unique name.
+ *         if (useThrottle(1, name)) {
+ * 		    print(`Throttled log: ${name.value}`)
+ * 	    }
+ *     }
+ * }
+ * ```
  */
 export function useThrottle(seconds: number, identifier?: unknown): boolean {
 	const state = useHookState(
