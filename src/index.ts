@@ -6,7 +6,18 @@ export { component } from './component'
 
 export { Plugin } from './plugin'
 
-export { stdPhases, stdPipelines } from './stdPhases'
+export {
+	PRE_STARTUP,
+	STARTUP,
+	POST_STARTUP,
+	FIRST,
+	PRE_UPDATE,
+	UPDATE,
+	POST_UPDATE,
+	LAST,
+	ABSOLUTE_FIRST,
+	ABSOLUTE_LAST,
+} from './stdPhases'
 
 export { Phase, Pipeline } from '@rbxts/planck'
 

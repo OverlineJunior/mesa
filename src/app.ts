@@ -1,10 +1,19 @@
 import { Phase, Scheduler } from '@rbxts/planck'
-import { stdPhases, stdPipelines } from './stdPhases'
 import { RunService } from '@rbxts/services'
 import { System, SystemFn } from './system'
 import { Plugin } from './plugin'
 import { stdPlugins } from './stdPlugins'
 import { World } from './world'
+import {
+	FIRST,
+	LAST,
+	POST_SIMULATION,
+	PRE_ANIMATION,
+	PRE_RENDER,
+	PRE_SIMULATION,
+	STARTUP_PIPELINE,
+	UPDATE_PIPELINE,
+} from './stdPhases'
 
 export type SystemDeltaTimes = Map<System, number>
 
@@ -15,7 +24,7 @@ export type SystemDeltaTimes = Map<System, number>
  *
  * ```ts
  * const app = new App()
- *     .addSystems(stdPhases.update, updateStamina, logPositions)
+ *     .addSystems(UPDATE, updateStamina, logPositions)
  *     .addPlugins(movementPlugin)
  *     .run()
  * ```
@@ -30,12 +39,12 @@ export class App {
 	constructor() {
 		// Set up standard pipelines and phases.
 		this.scheduler
-			.insert(stdPipelines.startup)
-			.insert(stdPipelines.update, RunService, 'Heartbeat')
-			.insert(stdPhases.preRender, RunService, 'PreRender')
-			.insert(stdPhases.preAnimation, RunService, 'PreAnimation')
-			.insert(stdPhases.preSimulation, RunService, 'PreSimulation')
-			.insert(stdPhases.postSimulation, RunService, 'PostSimulation')
+			.insert(STARTUP_PIPELINE)
+			.insert(UPDATE_PIPELINE, RunService, 'Heartbeat')
+			.insert(PRE_RENDER, RunService, 'PreRender')
+			.insert(PRE_ANIMATION, RunService, 'PreAnimation')
+			.insert(PRE_SIMULATION, RunService, 'PreSimulation')
+			.insert(POST_SIMULATION, RunService, 'PostSimulation')
 
 		this.addPlugins(...stdPlugins)
 	}
@@ -49,7 +58,7 @@ export class App {
 	 * function updateHealth(world: World) { }
 	 * function logPositions(world: World) { }
 	 *
-	 * app.addSystems(stdPhases.update, updateHealth, logPositions)
+	 * app.addSystems(UPDATE, updateHealth, logPositions)
 	 * ```
 	 */
 	addSystems(phase: Phase, ...systems: SystemFn[]): this {
@@ -114,13 +123,13 @@ export class App {
 	// TODO! `addPhaseAfter` and `addPhaseBefore` and still unstable.
 	// ! We need to check whether bad usage of it breaks the standard that allows for third-party plugins.
 	/**
-	 * Adds a new _phase_ to be ran after another (except for `stdPhases.last`).
+	 * Adds a new _phase_ to be ran after another (except for `LAST`).
 	 */
 	addPhaseAfter(phase: Phase, after: Phase): this {
 		// Reason: maintains the meaning of "first" and "last" phases, while also making
 		// sure `internalPhases.{absoluteFirst, absoluteLast}` remain at the absolute ends.
-		if (after === stdPhases.last) {
-			error('Inserting phases after `stdPhases.last` is not allowed.')
+		if (after === LAST) {
+			error('Inserting phases after `LAST` is not allowed.')
 		}
 
 		this.scheduler.insertAfter(phase, after)
@@ -128,12 +137,12 @@ export class App {
 	}
 
 	/**
-	 * Adds a new _phase_ to be ran before another (except for `stdPhases.first`).
+	 * Adds a new _phase_ to be ran before another (except for `FIRST`).
 	 */
 	addPhaseBefore(phase: Phase, before: Phase): this {
 		// Reason: same as in `addPhaseAfter`.
-		if (before === stdPhases.first) {
-			error('Inserting phases before `stdPhases.first` is not allowed.')
+		if (before === FIRST) {
+			error('Inserting phases before `FIRST` is not allowed.')
 		}
 
 		this.scheduler.insertBefore(phase, before)

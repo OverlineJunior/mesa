@@ -1,121 +1,116 @@
 import { Phase, Pipeline } from '@rbxts/planck'
 
+// Startup pipeline //
+
 /**
- * Standard phases provided by the framework for common use-cases.
+ * The first phase in the startup pipeline, running once before all others, even custom ones.
  *
- * Given an standard, users can create third-party plugins that integrate seamlessly with other users' games.
+ * **PRE_STARTUP** -> STARTUP -> POST_STARTUP.
+ *
+ * ---
+ *
+ * The startup pipeline runs before the update pipeline.
  */
-export const stdPhases = {
-	// Startup pipeline.
-	/**
-	 * The first phase in the startup pipeline, running once before all others, even custom ones.
-	 *
-	 * **preStartup** -> startup -> postStartup.
-	 *
-	 * ---
-	 *
-	 * The startup pipeline runs before the update pipeline.
-	 */
-	preStartup: new Phase('preStartup'),
-	/**
-	 * Runs once on app startup in the following order:
-	 *
-	 * preStartup -> **startup** -> postStartup.
-	 *
-	 * ---
-	 *
-	 * The startup pipeline runs before the update pipeline.
-	 */
-	startup: new Phase('startup'),
-	/**
-	 * The last phase in the startup pipeline, running once after all other **startup** phases, even custom ones.
-	 *
-	 * preStartup -> startup -> **postStartup**.
-	 *
-	 * ---
-	 *
-	 * The startup pipeline runs before the update pipeline.
-	 */
-	postStartup: new Phase('postStartup'),
+export const PRE_STARTUP = new Phase('PRE_STARTUP')
+/**
+ * Runs once on app startup in the following order:
+ *
+ * PRE_STARTUP -> **STARTUP** -> POST_STARTUP.
+ *
+ * ---
+ *
+ * The startup pipeline runs before the update pipeline.
+ */
+export const STARTUP = new Phase('STARTUP')
+/**
+ * The last phase in the startup pipeline, running once after all other **startup** phases, even custom ones.
+ *
+ * PRE_STARTUP -> STARTUP -> **POST_STARTUP**.
+ *
+ * ---
+ *
+ * The startup pipeline runs before the update pipeline.
+ */
+export const POST_STARTUP = new Phase('POST_STARTUP')
 
-	// Update pipeline.
-	/**
-	 * The first phase in the update pipeline, running on `RunService.Heartbeat` before all other **update** phases, even custom ones.
-	 *
-	 * **first** -> preUpdate -> update -> postUpdate -> last.
-	 */
-	first: new Phase('first'),
-	/**
-	 * Runs on `RunService.Heartbeat` in the following order (assuming no custom phases are added):
-	 *
-	 * first -> **preUpdate** -> update -> postUpdate -> last.
-	 */
-	preUpdate: new Phase('preUpdate'),
-	/**
-	 * Runs on `RunService.Heartbeat` in the following order (assuming no custom phases are added):
-	 *
-	 * first -> preUpdate -> **update** -> postUpdate -> last.
-	 */
-	update: new Phase('update'),
-	/**
-	 * Runs on `RunService.Heartbeat` in the following order (assuming no custom phases are added):
-	 *
-	 * first -> preUpdate -> update -> **postUpdate** -> last.
-	 */
-	postUpdate: new Phase('postUpdate'),
-	/**
-	 * The last phase in the update pipeline, running on `RunService.Heartbeat` after all others, even custom ones.
-	 *
-	 * first -> preUpdate -> update -> postUpdate -> **last**.
-	 */
-	last: new Phase('last'),
-
-	// RunService phases.
-	/**
-	 * Runs on `RunService.PreStartup`.
-	 */
-	preRender: new Phase('preRender'),
-	/**
-	 * Runs on `RunService.PreAnimation`.
-	 */
-	preAnimation: new Phase('preAnimation'),
-	/**
-	 * Runs on `RunService.PreSimulation`.
-	 */
-	preSimulation: new Phase('preSimulation'),
-	/**
-	 * Runs on `RunService.PostSimulation`.
-	 */
-	postSimulation: new Phase('postSimulation'),
-}
+// Update pipeline //
 
 /**
- * Internal phases should only be used by the framework itself and third-party plugins that need
- * to run systems absolutely first or last in the update pipeline.
+ * The first phase in the update pipeline, running on `RunService.Heartbeat` before all other **update** phases, even custom ones.
+ *
+ * **FIRST** -> PRE_UPDATE -> UPDATE -> POST_UPDATE -> LAST.
  */
-export const internalPhases = {
-	/**
-	 * **absoluteFirst** -> first -> preUpdate -> update -> postUpdate -> last -> absoluteLast.
-	 */
-	absoluteFirst: new Phase('absoluteFirst'),
-	/**
-	 * absoluteFirst -> first -> preUpdate -> update -> postUpdate -> last -> **absoluteLast**.
-	 */
-	absoluteLast: new Phase('absoluteLast'),
-}
+export const FIRST = new Phase('FIRST')
+/**
+ * Runs on `RunService.Heartbeat` in the following order (assuming no custom phases are added):
+ *
+ * FIRST -> **PRE_UPDATE** -> UPDATE -> POST_UPDATE -> LAST.
+ */
+export const PRE_UPDATE = new Phase('PRE_UPDATE')
+/**
+ * Runs on `RunService.Heartbeat` in the following order (assuming no custom phases are added):
+ *
+ * FIRST -> PRE_UPDATE -> **UPDATE** -> POST_UPDATE -> LAST.
+ */
+export const UPDATE = new Phase('UPDATE')
+/**
+ * Runs on `RunService.Heartbeat` in the following order (assuming no custom phases are added):
+ *
+ * FIRST -> PRE_UPDATE -> UPDATE -> **POST_UPDATE** -> LAST.
+ */
+export const POST_UPDATE = new Phase('POST_UPDATE')
+/**
+ * The last phase in the update pipeline, running on `RunService.Heartbeat` after all others, even custom ones.
+ *
+ * FIRST -> PRE_UPDATE -> UPDATE -> POST_UPDATE -> **LAST**.
+ */
+export const LAST = new Phase('LAST')
 
-export const stdPipelines = {
-	startup: new Pipeline('startupPipeline')
-		.insert(stdPhases.preStartup)
-		.insert(stdPhases.startup)
-		.insert(stdPhases.postStartup),
+// RunService phases //
 
-	update: new Pipeline('updatePipeline')
-		.insert(internalPhases.absoluteFirst)
-		.insert(stdPhases.first)
-		.insert(stdPhases.preUpdate)
-		.insert(stdPhases.update)
-		.insert(stdPhases.postUpdate)
-		.insert(stdPhases.last)
-		.insert(internalPhases.absoluteLast),
-}
+/**
+ * Runs on `RunService.PreStartup`.
+ */
+export const PRE_RENDER = new Phase('PRE_RENDER')
+/**
+ * Runs on `RunService.PreAnimation`.
+ */
+export const PRE_ANIMATION = new Phase('PRE_ANIMATION')
+/**
+ * Runs on `RunService.PreSimulation`.
+ */
+export const PRE_SIMULATION = new Phase('PRE_SIMULATION')
+/**
+ * Runs on `RunService.PostSimulation`.
+ */
+export const POST_SIMULATION = new Phase('POST_SIMULATION')
+
+/**
+ * Internal phase.
+ *
+ * Should only be used by the framework itself and third-party plugins that need
+ * to run systems absolutely first or last in the update pipeline.
+ *
+ * **ABSOLUTE_FIRST** -> FIRST -> PRE_UPDATE -> UPDATE -> POST_UPDATE -> LAST -> ABSOLUTE_LAST.
+ */
+export const ABSOLUTE_FIRST = new Phase('ABSOLUTE_FIRST')
+/**
+ * Internal phase.
+ *
+ * Should only be used by the framework itself and third-party plugins that need
+ * to run systems absolutely first or last in the update pipeline.
+ *
+ * ABSOLUTE_FIRST -> FIRST -> PRE_UPDATE -> UPDATE -> POST_UPDATE -> LAST -> **ABSOLUTE_LAST**.
+ */
+export const ABSOLUTE_LAST = new Phase('ABSOLUTE_LAST')
+
+export const STARTUP_PIPELINE = new Pipeline('STARTUPPipeline').insert(PRE_STARTUP).insert(STARTUP).insert(POST_STARTUP)
+
+export const UPDATE_PIPELINE = new Pipeline('UPDATEPipeline')
+	.insert(ABSOLUTE_FIRST)
+	.insert(FIRST)
+	.insert(PRE_UPDATE)
+	.insert(UPDATE)
+	.insert(POST_UPDATE)
+	.insert(LAST)
+	.insert(ABSOLUTE_LAST)
