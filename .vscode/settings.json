@@ -11,5 +11,6 @@
 	},
 	"eslint.run": "onType",
 	"eslint.format.enable": true,
+	"eslint.useFlatConfig": true,
 	"typescript.format.semicolons": "remove"
 }
