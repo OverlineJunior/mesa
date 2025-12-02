@@ -25,6 +25,7 @@ export class App {
 	private scheduler: Scheduler<[World, App]> = new Scheduler(new World(), this)
 	private plugins: Plugin[] = []
 	private running = false
+	private debugMode = false
 
 	constructor() {
 		// Set up standard pipelines and phases.
@@ -54,17 +55,20 @@ export class App {
 	addSystems(phase: Phase, ...systems: SystemFn[]): this {
 		systems.forEach((systemFn) => {
 			const system = new System(systemFn, phase)
+			let fn = system.fn
 
-			const wrappedFn = (...args: unknown[]) => {
-				debug.profilebegin(`System ${system.name}`)
-				const t = os.clock()
-				system.fn(...args)
-				const dt = os.clock() - t
-				debug.profileend()
-				this.systemDeltaTimes.set(system, dt)
+			if (this.debugMode) {
+				fn = (...args: unknown[]) => {
+					debug.profilebegin(`System ${system.name}`)
+					const t = os.clock()
+					system.fn(...args)
+					const dt = os.clock() - t
+					debug.profileend()
+					this.systemDeltaTimes.set(system, dt)
+				}
 			}
 
-			this.scheduler.addSystem(wrappedFn, system.phase)
+			this.scheduler.addSystem(fn, system.phase)
 		})
 
 		return this
@@ -89,6 +93,7 @@ export class App {
 			// Since user plugin addition runs first, this check means that if a third-party
 			// plugin adds the same plugin the user added, the user's addition takes precedence.
 			if (plugins.some((p) => getmetatable(p) === getmetatable(plugin))) {
+				this.tryDebug(`Plugin '${getmetatable(plugin)}' was already added; skipping duplicate addition.`)
 				return
 			}
 
@@ -131,6 +136,11 @@ export class App {
 		return this
 	}
 
+	setDebug(enabled: boolean): this {
+		this.debugMode = enabled
+		return this
+	}
+
 	/**
 	 * Builds all added _plugins_ and starts the app's scheduler, running all
 	 * _systems_ on their respective phases.
@@ -146,5 +156,11 @@ export class App {
 		this.running = true
 
 		return this
+	}
+
+	private tryDebug(message: string): void {
+		if (!this.debugMode) return
+
+		print(`[Mesa Debug] ${message}`)
 	}
 }
