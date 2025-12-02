@@ -86,7 +86,7 @@ export const PRE_SIMULATION = new Phase('PRE_SIMULATION')
 export const POST_SIMULATION = new Phase('POST_SIMULATION')
 
 /**
- * Internal phase.
+ * ⚠️ Internal phase.
  *
  * Should only be used by the framework itself and third-party plugins that need
  * to run systems absolutely first or last in the update pipeline.
@@ -95,7 +95,7 @@ export const POST_SIMULATION = new Phase('POST_SIMULATION')
  */
 export const ABSOLUTE_FIRST = new Phase('ABSOLUTE_FIRST')
 /**
- * Internal phase.
+ * ⚠️ Internal phase.
  *
  * Should only be used by the framework itself and third-party plugins that need
  * to run systems absolutely first or last in the update pipeline.
