@@ -178,6 +178,6 @@ export class App {
 	private tryDebug(message: string): void {
 		if (!this.debugMode) return
 
-		print(`[Mesa Debug] ${message}`)
+		warn(`[Mesa Debug] ${message}`)
 	}
 }
