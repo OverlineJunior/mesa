@@ -75,7 +75,9 @@ export class App {
 	}
 
 	/**
-	 * Adds _plugins_ to the app, which are built on `app.run()`.
+	 * Adds _plugins_ to the app, which are built on `app.run()`, or immediately if the app is already running.
+	 *
+	 * Duplicate plugins are ignored.
 	 *
 	 * # Example
 	 *
@@ -136,6 +138,9 @@ export class App {
 		return this
 	}
 
+	/**
+	 * Enables or disables debug mode.
+	 */
 	setDebug(enabled: boolean): this {
 		this.debugMode = enabled
 		return this
