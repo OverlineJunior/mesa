@@ -111,12 +111,12 @@ export class App {
 			} else if (err === 'duplicatePlugin') {
 				this.tryDebug(`Plugin '${resolvedPlugin.name}' was already added; skipping duplicate.`)
 			} else if (err === 'duplicateThirdPartyPlugin') {
-				error(`
-					Two third-party plugins attempted to add the same plugin '${resolvedPlugin.name}'.
-					Because of this and the fact that '${resolvedPlugin.name}' has constructor parameters,
-					Mesa cannot determine which one to use.\n\nPlease resolve this conflict by adding
-					${resolvedPlugin.name} manually to your app with the desired parameters.
-				`)
+				error(
+					`Two third-party plugins attempted to add the same plugin '${resolvedPlugin.name}'. ` +
+					`Because of this and the fact that '${resolvedPlugin.name}' has constructor parameters, ` +
+					`Mesa cannot determine which one to use.\n\nPlease resolve this conflict by adding ` +
+					`'${resolvedPlugin.name}' manually to your app with the desired parameters.`,
+				)
 			}
 		})
 
