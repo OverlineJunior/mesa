@@ -200,7 +200,7 @@ export class App {
 		let plugin: ResolvedPlugin | undefined = undefined
 
 		this.plugins.getAll().forEach((p) => {
-			const hasBuild = hasBuildInCallStack(p.build)
+			const hasBuild = hasBuildInCallStack(p.buildFn)
 			if (hasBuild) {
 				plugin = p
 				return

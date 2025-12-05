@@ -6,6 +6,9 @@ export interface Plugin {
 
 export interface ResolvedPlugin extends Plugin {
 	constructorFn: Callback
+	// Even though build is already defined in Plugin, we redefine it as a function instead
+	// of a method because, in Roblox-TS, we cannot refer to methods without calling them.
+	buildFn: Callback
 	name: string
 	owner: 'user' | 'third-party'
 	built: boolean
@@ -81,6 +84,7 @@ export class PluginRegistry {
 	private resolve(plugin: Plugin, owner: ResolvedPlugin['owner']): ResolvedPlugin {
 		const resolved = plugin as ResolvedPlugin
 		resolved.constructorFn = (plugin as unknown as { constructor: Callback }).constructor
+		resolved.buildFn = plugin.build
 		resolved.name = tostring(getmetatable(plugin))
 		resolved.owner = owner
 		resolved.built = false
