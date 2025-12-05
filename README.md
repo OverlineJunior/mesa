@@ -1,6 +1,6 @@
 <div align="center">
   <img src="assets/mesa.png" width="200" />
-  <div style="margin-top: 18px;">Mesa, an ECS framework for Roblox-TS to unify them all</div>
+  <div style="margin-top: 28;">Mesa, an ECS framework for Roblox-TS to unify them all</div>
 </div>
 
 ## Testing Workflow
