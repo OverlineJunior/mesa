@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="assets/mesa.png" width="200" />
+  <div style="margin-top: 18px;">Mesa, an ECS framework for Roblox-TS to unify them all</div>
+</div>
+
 ## Testing Workflow
 
 Given `mesa` and a test game `mesa-test`, in order to automatically send changes over, you must first follow the steps below a single time only:
