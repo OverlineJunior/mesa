@@ -114,6 +114,8 @@ export class World {
 
 	/**
 	 * Despawns an entity (and its components/relationships) from the world entirely.
+	 *
+	 * If the entity does not exist, does nothing.
 	 */
 	despawn = ((...args) => this.ecs.delete(...args)) as Ecs['delete']
 
@@ -323,4 +325,20 @@ export class World {
 	 * ```
 	 */
 	range = ((...args) => this.ecs.range(...args)) as Ecs['range']
+
+	/**
+	 * Calls the provided function when the specified component is added to an entity.
+	 */
+	added = ((...args) => this.ecs.added(...args)) as Ecs['added']
+
+	/**
+	 * Calls the provided function when the specified component is removed from an entity,
+	 * or when the entity is despawned.
+	 */
+	removed = ((...args) => this.ecs.removed(...args)) as Ecs['removed']
+
+	/**
+	 * Calls the provided function when the specified component's value is changed on an entity.
+	 */
+	changed = ((...args) => this.ecs.changed(...args)) as Ecs['changed']
 }
