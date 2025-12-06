@@ -113,6 +113,11 @@ export class World {
 	}
 
 	/**
+	 * Despawns an entity (and its components/relationships) from the world entirely.
+	 */
+	despawn = ((...args) => this.ecs.delete(...args)) as Ecs['delete']
+
+	/**
 	 * Retrieves the values of up to 4 components on a given entity. Missing
 	 * components will return `undefined`.
 	 *
@@ -273,11 +278,6 @@ export class World {
 	 * Removes a component from the given entity.
 	 */
 	remove = ((...args) => this.ecs.remove(...args)) as Ecs['remove']
-
-	/**
-	 * Deletes an entity (and its components/relationships) from the world entirely.
-	 */
-	delete = ((...args) => this.ecs.delete(...args)) as Ecs['delete']
 
 	/**
 	 * Clears all components and relationships from the given entity, but
