@@ -15,7 +15,7 @@ type Nullable<T extends unknown[]> = { [K in keyof T]: T[K] | undefined }
 
 type RejectTags<T, Err> = T extends Tag ? Err : T
 
-type SpawnArgumentShape = [Entity<any>, any] | [Tag]
+type SpawnArgumentShape = [Entity<any>, any] | Tag
 
 type SpawnComponentDefinition<T> =
 	// Handle `[Component, Value]`.
@@ -26,11 +26,9 @@ type SpawnComponentDefinition<T> =
 				? T
 				: [C, InferComponent<C>]
 			: never
-		: // Handle `[ComponentTag]`.
-			T extends [infer C]
-			? C extends Tag
-				? T
-				: never
+		: // Handle `Tag`.
+			T extends Tag
+			? T
 			: never
 
 function isArray<T = unknown>(value: unknown): value is T[] {
@@ -48,66 +46,34 @@ export class World {
 	 */
 	spawn(): Entity
 	/**
-	 * Spawns a new entity with a single tag component, and returns it.
+	 * Spawns a new entity with one or more tags and/or component-value pairs, and returns it.
 	 *
 	 * # Example
 	 *
 	 * ```ts
-	 * const entity = app.spawn(IsAlive)
-	 * ```
-	 */
-	spawn(component: Tag): Entity
-	/**
-	 * Spawns a new entity with a single component and value, and returns it.
+	 * const IsAlive = component()
+	 * const Health = component<number>()
 	 *
-	 * # Example
-	 *
-	 * ```ts
-	 * const entity = app.spawn(Name, 'Bob')
-	 * ```
-	 */
-	spawn<V>(component: Entity<V>, value: V): Entity
-	/**
-	 * Spawns a new entity with multiple components and values, and returns it.
-	 *
-	 * # Example
-	 *
-	 * ```ts
 	 * const entity = app.spawn(
+	 *     IsAlive,
 	 *     [Health, 100],
-	 *     [Position, new Vector3(0, 10, 0)],
-	 *     [Velocity, new Vector3(1, 0, 0)],
 	 * )
 	 * ```
 	 */
 	spawn<Arg extends SpawnArgumentShape[]>(...args: { [K in keyof Arg]: SpawnComponentDefinition<Arg[K]> }): Entity
 	spawn(...args: defined[]): Entity {
-		// Possible shapes of `args`:
-		// - Shape 1: []
-		// - Shape 2: [Tag]
-		// - Shape 3: [Entity, Value]
-		// - Shape 4: [[Entity, Value], [Tag], [Entity, Value], ...]
-
 		const entity = this.ecs.entity()
 
-		// Shape 1.
-		if (args.size() === 0) {
-			return entity
-		}
-
-		// Shape 4.
-		if (isArray(args[0])) {
-			args.forEach((pair) => {
-				const [first, second] = pair as [Id, defined?]
-				this.set(entity, first, second)
-			})
-
-			return entity
-		}
-
-		// Shape 2 & 3.
-		const [first, second] = args as [Id, defined?]
-		this.set(entity, first, second)
+		args.forEach((arg) => {
+			// Handle `[Entity, Value]`.
+			if (isArray(arg)) {
+				const [component, value] = arg
+				this.ecs.set(entity, component as Entity<unknown>, value)
+			// Handle `Tag`.
+			} else {
+				this.ecs.add(entity, arg as Tag)
+			}
+		})
 
 		return entity
 	}
