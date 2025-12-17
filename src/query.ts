@@ -2,9 +2,9 @@ import { Component } from './component'
 import { ComponentOrPair, Entity, InferValues } from './entity'
 import { UpToEight } from './util'
 import { world } from './world'
-import { Entity as RawEntity, Query as RawQuery } from '@rbxts/jecs'
+import { Entity as RawEntity, Query as RawQuery, World } from '@rbxts/jecs'
 
-export type QueryResult<Cs extends UpToEight<ComponentOrPair>> = [Entity, ...InferValues<Cs>]
+export type QueryResult<Cs extends UpToEight<ComponentOrPair> | []> = [Entity, ...InferValues<Cs>]
 
 // We use the Flyweight pattern here to avoid creating a new Entity instance for
 // every entity in a query, almost doubling performance.
@@ -19,11 +19,16 @@ class ReusableEntity extends Entity {
 
 const sharedEntity = new ReusableEntity()
 
-export class Query<Cs extends UpToEight<ComponentOrPair>> {
+export class Query<Cs extends UpToEight<ComponentOrPair> | []> {
+	private readonly isEmpty: boolean
+	private readonly rawQuery: RawQuery<RawEntity[]>
 	private readonly filters: ((entity: Entity, ...components: InferValues<Cs>) => boolean)[] = []
 	private readonly excludedIds: RawEntity[] = []
 
-	constructor(private readonly rawQuery: RawQuery<RawEntity[]>) {}
+	constructor(...components: Cs) {
+		this.isEmpty = components.size() === 0
+		this.rawQuery = world.query(...components.map((c) => (c as Component).id))
+	}
 
 	without(...components: Component<unknown>[]): Query<Cs> {
 		components.forEach((c) => this.excludedIds.push(c.id))
@@ -38,23 +43,17 @@ export class Query<Cs extends UpToEight<ComponentOrPair>> {
 	forEach(callback: (entity: Entity, ...componentValues: InferValues<Cs>) => void): void {
 		const fn = callback as unknown as (e: Entity, ...args: unknown[]) => void
 		const filters = this.filters as unknown as ((e: Entity, ...args: unknown[]) => boolean)[]
+		const hasFilters = filters.size() > 0
 
-		if (filters.size() === 0) {
-			// Roblox-TS won't allow spreading tuples from iterators, so we have to do it manually.
-			for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
-				sharedEntity.id = e
-				fn(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)
+		// Roblox-TS won't allow spreading tuples from iterators, so we have to do it manually.
+		for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
+			sharedEntity.id = e
+
+			if (hasFilters && !this.useFilters(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)) {
+				continue
 			}
-		} else {
-			for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
-				sharedEntity.id = e
 
-				if (!this.useFilters(v1, v2, v3, v4, v5, v6, v7, v8)) {
-					continue
-				}
-
-				fn(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)
-			}
+			fn(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)
 		}
 	}
 
@@ -82,50 +81,29 @@ export class Query<Cs extends UpToEight<ComponentOrPair>> {
 	find(predicate: (entity: Entity, ...componentValues: InferValues<Cs>) => boolean): QueryResult<Cs> | undefined {
 		const filters = this.filters as unknown as ((e: Entity, ...args: unknown[]) => boolean)[]
 		const pred = predicate as unknown as (e: Entity, ...args: unknown[]) => boolean
+		const hasFilters = filters.size() > 0
 
-		if (filters.size() === 0) {
-			for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
-				sharedEntity.id = e
+		for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
+			sharedEntity.id = e
 
-				if (pred(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)) {
-					return [
-						new Entity((sharedEntity as ReusableEntity).id),
-						v1,
-						v2,
-						v3,
-						v4,
-						v5,
-						v6,
-						v7,
-						v8,
-					] as unknown as QueryResult<Cs>
-				}
+			if (hasFilters && !this.useFilters(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)) {
+				continue
 			}
-		} else {
-			for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
-				sharedEntity.id = e
 
-				if (!this.useFilters(v1, v2, v3, v4, v5, v6, v7, v8)) {
-					continue
-				}
-
-				if (pred(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)) {
-					return [
-						new Entity((sharedEntity as ReusableEntity).id),
-						v1,
-						v2,
-						v3,
-						v4,
-						v5,
-						v6,
-						v7,
-						v8,
-					] as unknown as QueryResult<Cs>
-				}
+			if (pred(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)) {
+				return [
+					new Entity((sharedEntity as ReusableEntity).id),
+					v1,
+					v2,
+					v3,
+					v4,
+					v5,
+					v6,
+					v7,
+					v8,
+				] as unknown as QueryResult<Cs>
 			}
 		}
-
-		return undefined
 	}
 
 	collect(): QueryResult<Cs>[] {
@@ -139,6 +117,7 @@ export class Query<Cs extends UpToEight<ComponentOrPair>> {
 	}
 
 	private useFilters(
+		e: ReusableEntity,
 		v1: unknown,
 		v2: unknown,
 		v3: unknown,
@@ -152,7 +131,7 @@ export class Query<Cs extends UpToEight<ComponentOrPair>> {
 
 		let passed = true
 		for (const filter of filters) {
-			if (!filter(sharedEntity, v1, v2, v3, v4, v5, v6, v7, v8)) {
+			if (!filter(e, v1, v2, v3, v4, v5, v6, v7, v8)) {
 				passed = false
 				break
 			}
@@ -162,7 +141,6 @@ export class Query<Cs extends UpToEight<ComponentOrPair>> {
 	}
 }
 
-export function query<Cs extends UpToEight<ComponentOrPair>>(...components: Cs): Query<Cs> {
-	const q = world.query(...components.map((c) => (c as Component).id))
-	return new Query(q)
+export function query<Cs extends UpToEight<ComponentOrPair> | []>(...components: Cs): Query<Cs> {
+	return new Query<Cs>(...components)
 }
