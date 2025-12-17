@@ -1,7 +1,7 @@
 import { ComponentOrPair, Entity, GetParams, GetResult } from './entity'
-import { Entity as RawEntity } from '@rbxts/jecs'
+import { Entity as RawEntity, Wildcard as RawWildcard } from '@rbxts/jecs'
 import { world } from './world'
-import { Pair } from './relationship'
+import { Pair } from './pair'
 import { UpToFour } from './util'
 
 export class Component<Value = undefined> extends Entity {
@@ -31,6 +31,8 @@ export class Component<Value = undefined> extends Entity {
 export function component<Value = undefined>(): Component<Value> {
 	return new Component<Value>(world.component<Value>())
 }
+
+export const Wildcard = new Component<unknown>(RawWildcard)
 
 export class Resource<Value> extends Entity {
 	set(value: Value): this

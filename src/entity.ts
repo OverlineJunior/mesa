@@ -1,10 +1,10 @@
 import { FlattenTuple, Nullable, Entity as RawEntity } from '@rbxts/jecs'
 import { world } from './world'
 import { Component } from './component'
-import { Pair } from './relationship'
+import { Pair } from './pair'
 import { UpToFour } from './util'
 
-export type ComponentOrPair<V = unknown> = Component<V> | Pair<V>
+export type ComponentOrPair<V = unknown> = Component<V>
 
 export type InferValue<T extends ComponentOrPair> =
 	T extends Component<infer V> ? V : T extends Pair<infer R> ? R : never
@@ -68,6 +68,54 @@ export class Entity {
 
 	exists(): boolean {
 		return world.contains(this.id)
+	}
+
+	targetOf(relation: Component, nth = 0): Entity | undefined {
+		const t = world.target(this.id, relation.id, nth)
+		return t ? new Entity(t) : undefined
+	}
+
+	targetsOf(relation: Component): Entity[] {
+		const targets: Entity[] = []
+
+		let nth = 0
+		while (true) {
+			const t = world.target(this.id, relation.id, nth)
+			if (!t) {
+				break
+			}
+			targets.push(new Entity(t))
+			nth++
+		}
+
+		return targets
+	}
+
+	// TODO! Find a way to implement this.
+	// Example usage:
+	// ```ts
+	// const Name = component<string>()
+	// const Likes = component()
+	// const Hates = component()
+	// const Loves = component()
+
+	// const alice = entity().set(Name, 'Alice')
+
+	// const bob = entity().set(Name, 'Bob').set(pair(Likes, alice))
+	// const charlie = entity().set(Name, 'Charlie').set(pair(Hates, alice))
+	// const dave = entity().set(Name, 'Dave').set(pair(Loves, alice))
+
+	// query(pair(Wildcard, alice)).forEach((relatedToAlice) => {
+	//     const relations = relatedToAlice.relationsTo(alice)
+	// }
+	// ```
+	relationTo(target: Entity, nth = 0): Component | undefined {
+		error('Not implemented')
+	}
+
+	// TODO! Same as `relationTo`.
+	relationsTo(target: Entity): Component[] {
+		error('Not implemented')
 	}
 
 	despawn(): void {
