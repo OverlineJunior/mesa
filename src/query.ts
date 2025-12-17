@@ -30,7 +30,7 @@ export class Query<Cs extends UpToEight<ComponentOrPair> | []> {
 		this.rawQuery = world.query(...components.map((c) => (c as Component).id))
 	}
 
-	without(...components: Component<unknown>[]): Query<Cs> {
+	without(...components: Component[]): Query<Cs> {
 		components.forEach((c) => this.excludedIds.push(c.id))
 		return this
 	}

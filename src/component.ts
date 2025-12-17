@@ -4,7 +4,7 @@ import { world } from './world'
 import { Pair } from './pair'
 import { UpToFour } from './util'
 
-export class Component<Value = undefined> extends Entity {
+export class Component<Value = unknown> extends Entity {
 	constructor(override readonly id: RawEntity<Value>) {
 		super(id)
 	}
@@ -32,7 +32,7 @@ export function component<Value = undefined>(): Component<Value> {
 	return new Component<Value>(world.component<Value>())
 }
 
-export const Wildcard = new Component<unknown>(RawWildcard)
+export const Wildcard = new Component(RawWildcard)
 export const ComponentTag = new Component(RawComponent)
 
 export class Resource<Value> extends Entity {
@@ -52,12 +52,12 @@ export class Resource<Value> extends Entity {
 	}
 
 	get(): Value
-	get<Cs extends UpToFour<Component<unknown>>>(...components: GetParams<Cs>): GetResult<Cs>
-	get(...components: Component<unknown>[]) {
+	get<Cs extends UpToFour<Component>>(...components: GetParams<Cs>): GetResult<Cs>
+	get(...components: Component[]) {
 		if (components.size() === 0) {
 			return world.get(this.id, this.id)
 		} else {
-			return super.get(...(components as [Component<unknown>]))
+			return super.get(...(components as [Component]))
 		}
 	}
 }
