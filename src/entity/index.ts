@@ -1,13 +1,13 @@
 import { FlattenTuple, Nullable, Entity as RawEntity } from '@rbxts/jecs'
 import { world } from '../world'
 import { Component } from './component'
-import { Pair } from './pair'
+import { InferPair, Pair } from './pair'
 import { UpToFour } from '../util'
 
 export type ComponentOrPair<V = unknown> = Component<V>
 
 export type InferValue<T extends ComponentOrPair> =
-	T extends Component<infer V> ? V : T extends Pair<infer R> ? R : never
+	T extends Component<infer V> ? V : T extends Pair<infer V> ? V : never
 
 export type InferValues<Ts extends ComponentOrPair[]> = { [K in keyof Ts]: InferValue<Ts[K]> }
 
@@ -52,7 +52,7 @@ export class Entity {
 	 *     .set(pair(Owns, perfume), 5)
 	 * ```
 	 */
-	set<V>(pair: Pair<V>, value: V): this
+	set<P extends Pair<unknown>>(pair: P, value: InferPair<P>): this
 	/**
 	 * Assigns a _tag component_ to this _entity_.
 	 *
@@ -79,7 +79,7 @@ export class Entity {
 	 *     .set(Stamina, 50)
 	 * ```
 	 */
-	set<V>(component: Component<V>, value: V): this
+	set<V>(component: Component<V>, value: NoInfer<V>): this
 	set(componentOrPair: Entity, value?: unknown) {
 		world.set(this.id, (componentOrPair as Entity).id, value)
 		return this
