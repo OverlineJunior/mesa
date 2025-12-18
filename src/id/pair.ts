@@ -1,11 +1,11 @@
 import { Component } from './component'
 import { Entity } from './entity'
 import { ObservableId } from './observableId'
-import { RawId } from '.'
+import { RawId, VALUE_SYMBOL } from '.'
 import { pair as jecsPair } from '@rbxts/jecs'
 
 export class Pair<Value = unknown> extends ObservableId<Value> {
-	declare protected readonly __value: Value
+	declare [VALUE_SYMBOL]: Value
 }
 
 export function pair<R, T>(relation: Component<R>, target: Component<T>): Pair<R>

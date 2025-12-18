@@ -15,7 +15,13 @@ export type IsTag<T extends Id> = T extends Entity
 			? true
 			: false
 
-export type InferValue<T> = T extends { __value: infer V } ? V : never
+// We use this as a key to a "phantom property" on Id subclasses to represent
+// their value type. With this, we:
+// 1. Allow Typescript to infer the value type of Id subclasses with `InferValue`;
+// 2. Hide the property from the user.
+export declare const VALUE_SYMBOL: unique symbol
+
+export type InferValue<T> = T extends { [VALUE_SYMBOL]: infer V } ? V : never
 
 export type InferValues<Ts> = { [K in keyof Ts]: InferValue<Ts[K]> }
 

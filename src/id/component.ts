@@ -1,9 +1,10 @@
+import { VALUE_SYMBOL } from '.'
 import { world } from '../world'
 import { ObservableId } from './observableId'
 import { Component as JecsComponent, Wildcard as JecsWildcard } from '@rbxts/jecs'
 
 export class Component<Value = unknown> extends ObservableId<Value> {
-	declare public readonly __value: Value
+	declare [VALUE_SYMBOL]: Value
 }
 
 export function component<Value = undefined>(): Component<Value> {

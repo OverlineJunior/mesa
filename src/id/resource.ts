@@ -1,8 +1,8 @@
-import { Id } from '.'
+import { Id, VALUE_SYMBOL } from '.'
 import { world } from '../world'
 
 export class Resource<Value extends NonNullable<unknown>> extends Id {
-	declare protected readonly __value: Value
+	declare [VALUE_SYMBOL]: Value
 
 	read(): Value {
 		return world.get(this.id, this.id) as Value
