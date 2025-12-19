@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/mesa.png" width="300" />
+  <img src="assets/toucan.png" width="350" />
   <div>An opinionated Entity Component System framework for Roblox-TS</div>
 </div>
 
