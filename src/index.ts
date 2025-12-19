@@ -2,7 +2,7 @@ export { App } from './app'
 
 export { Id } from './id'
 export { entity, Entity } from './id/entity'
-export { component, Component, Wildcard, ComponentTag } from './id/component'
+export { component, Component, Wildcard, ComponentTag, ChildOf } from './id/component'
 export { resource, Resource } from './id/resource'
 export { pair, Pair } from './id/pair'
 
@@ -40,7 +40,7 @@ export {
 	// InferComponent,
 	// InferComponents,
 	// Component,
-	ChildOf,
+	// ChildOf,
 	// Wildcard,
 	// Rest,
 	// Exclusive,
