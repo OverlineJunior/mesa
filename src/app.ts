@@ -82,13 +82,13 @@ export class App {
 	 * app.addSystems(UPDATE, updateHealth, logPositions)
 	 * ```
 	 */
-	addSystems(phase: Phase, ...systems: System[]): this {
+	addSystems<P extends Plugin>(phase: Phase, ...systems: System<P>[]): this {
 		const plugin = this.findPluginInCallStack()
 
 		systems.forEach((system) => {
 			const resolvedSystem = new ResolvedSystem(system, phase)
 
-			let wrappedSystem = () => resolvedSystem.fn(this, plugin)
+			let wrappedSystem = () => resolvedSystem.fn(this, plugin as unknown as P)
 
 			if (this.debugMode) {
 				const original = wrappedSystem
@@ -101,7 +101,7 @@ export class App {
 
 					const dt = os.clock() - t
 					debug.profileend()
-					this.systemDeltaTimes.set(resolvedSystem, dt)
+					this.systemDeltaTimes.set(resolvedSystem as ResolvedSystem<Plugin>, dt)
 				}
 			}
 

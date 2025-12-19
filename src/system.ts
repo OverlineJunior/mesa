@@ -32,15 +32,15 @@ import { Plugin, ResolvedPlugin } from './plugin'
  * }
  * ```
  */
-export type System = (app: App, plugin?: Plugin) => void | undefined
+export type System<P extends Plugin> = (app: App, plugin?: P) => void | undefined
 
-export class ResolvedSystem {
-	readonly fn: System
+export class ResolvedSystem<P extends Plugin = Plugin> {
+	readonly fn: System<P>
 	readonly phase: Phase
 	readonly name: string
 	readonly plugin?: ResolvedPlugin
 
-	constructor(system: System, phase: Phase, plugin?: ResolvedPlugin) {
+	constructor(system: System<P>, phase: Phase, plugin?: ResolvedPlugin) {
 		this.fn = system
 		this.phase = phase
 		this.name = debug.info(system, 'n')[0]!
