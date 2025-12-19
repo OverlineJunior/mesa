@@ -62,13 +62,13 @@ new App()
 
 # Testing Workflow
 
-Given `mesa` and a test game `mesa-test`, in order to automatically send changes over, you must first follow the steps below a single time only:
+Given `toucan` and a test game `toucan-test`, in order to automatically send changes over, you must first follow the steps below a single time only:
 
-+ On `mesa`, run `npm run build`, then `yalc publish`
-+ On `mesa-test`, run `yalc add @rbxts/mesa`, then `npm install`
++ On `toucan`, run `npm run build`, then `yalc publish`
++ On `toucan-test`, run `yalc add @rbxts/toucan`, then `npm install`
 
-Then, in order to start testing `mesa` on `mesa-test`, run `npm run watch` on `mesa`.
+Then, in order to start testing `toucan` on `toucan-test`, run `npm run watch` on `toucan`.
 
 ## Fallback
 
-In case `yalc` fails, the script `packInstall` works as a fallback, packaging `mesa` and installing it on `mesa-test`. Just remember to update it to reference the right test game.
+In case `yalc` fails, the script `packInstall` works as a fallback, packaging `toucan` and installing it on `toucan-test`. Just remember to update it to reference the right test game.

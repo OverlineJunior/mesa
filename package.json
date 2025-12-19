@@ -1,6 +1,6 @@
 {
-  "name": "@rbxts/mesa",
-  "version": "5.0.0",
+  "name": "@rbxts/toucan",
+  "version": "0.1.0",
   "main": "out/init.lua",
   "scripts": {
     "build": "rbxtsc",
@@ -8,7 +8,7 @@
     "prepublishOnly": "npm run build",
     "lint": "eslint ./src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "packInstall": "rimraf --glob \"*.tgz\" && npm run build && npm pack && cd ../mesa-test && npm i ../mesa/*.tgz"
+    "packInstall": "rimraf --glob \"*.tgz\" && npm run build && npm pack && cd ../toucan-test && npm i ../toucan/*.tgz"
   },
   "keywords": [],
   "author": "",

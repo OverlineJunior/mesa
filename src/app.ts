@@ -17,7 +17,7 @@ import {
 } from './stdPhases'
 
 /**
- * The starting point of a Mesa application.
+ * The starting point of a Toucan application.
  *
  * It stores and exposes operations on _systems_, _plugins_ and _phases_, allowing
  * you to manipulate your _entities_ and _components_ in an organized manner.
@@ -142,7 +142,7 @@ export class App {
 				error(
 					`Two third-party plugins attempted to add the same plugin '${resolvedPlugin.name}'. ` +
 						`Because of this and the fact that '${resolvedPlugin.name}' has constructor parameters, ` +
-						`Mesa cannot determine which one to use.\n\nPlease resolve this conflict by adding ` +
+						`Toucan cannot determine which one to use.\n\nPlease resolve this conflict by adding ` +
 						`'${resolvedPlugin.name}' manually to your app with the desired parameters.`,
 				)
 			}
@@ -204,7 +204,7 @@ export class App {
 	private tryDebug(message: string): void {
 		if (!this.debugMode) return
 
-		warn(`[Mesa Debug] ${message}`)
+		warn(`[Toucan Debug] ${message}`)
 	}
 
 	private findPluginInCallStack(): ResolvedPlugin | undefined {
