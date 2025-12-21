@@ -337,14 +337,14 @@ export abstract class Id {
 	//     const relations = relatedToAlice.relationsTo(alice)
 	// }
 	// ```
-	relationTo(target: Id, nth = 0): Component | undefined {
-		error('Not implemented')
-	}
+	// relationTo(target: Id, nth = 0): Component | undefined {
+	// 	error('Not implemented')
+	// }
 
 	// TODO! Same as `relationTo`.
-	relationsTo(target: Id): Component[] {
-		error('Not implemented')
-	}
+	// relationsTo(target: Id): Component[] {
+	// 	error('Not implemented')
+	// }
 
 	/**
 	 * Completely removes this _entity_ from the world.
