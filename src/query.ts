@@ -1,24 +1,14 @@
-import { Component } from './id/observableId/component'
-import { Id, RawId, InferValues } from './id'
+import { Id, RawId, InferValues, resolveId, Component, Pair } from './id'
 import { ZeroUpToEight } from './util'
 import { world } from './world'
 import { Query as RawQuery } from '@rbxts/jecs'
-import { Pair } from './id/observableId/pair'
 
 export type QueryResult<Cs extends ZeroUpToEight<Component | Pair> | []> = [Id, ...InferValues<Cs>]
 
-// We use the Flyweight pattern here to avoid creating a new Entity instance for
-// every entity in a query, almost doubling performance.
-//
-// This does come with the caveat of the user having to `collect` if they want
-// to retain references to entities outside of the scope of the query iteration.
-class ReusableId extends Id {
-	constructor(public id: RawId = -1 as RawId) {
-		super(id)
-	}
-}
-
-const sharedId = new ReusableId()
+// TODO! See how we can reintegrate the flyweight pattern, but this time one for each of
+// ! entity, component, resource and pair, otherwise queries always return a simple Id object.
+// ! Also, note that some doc comments reference a sharedId object that no longer exists.
+// ! I kept them because I plan on reintroducing that pattern.
 
 export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 	private readonly isEmpty: boolean
@@ -59,28 +49,28 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 
 		// Empty queries are a special case where we want all entities.
 		if (this.isEmpty) {
-			world.entity_index.dense_array.forEach((e) => {
-				sharedId.id = e
+			world.entity_index.dense_array.forEach((rawId) => {
+				const id = resolveId(rawId)
 
-				if (hasFilters && !this.useFilters(sharedId)) {
+				if (hasFilters && !this.useFilters(id)) {
 					return
 				}
 
-				fn(sharedId)
+				fn(id)
 			})
 
 			return
 		}
 
 		// Roblox-TS won't allow spreading tuples from iterators, so we have to do it manually.
-		for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
-			sharedId.id = e
+		for (const [rawId, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
+			const id = resolveId(rawId)
 
-			if (hasFilters && !this.useFilters(sharedId, v1, v2, v3, v4, v5, v6, v7, v8)) {
+			if (hasFilters && !this.useFilters(id, v1, v2, v3, v4, v5, v6, v7, v8)) {
 				continue
 			}
 
-			fn(sharedId, v1, v2, v3, v4, v5, v6, v7, v8)
+			fn(id, v1, v2, v3, v4, v5, v6, v7, v8)
 		}
 	}
 
@@ -129,30 +119,30 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		const hasFilters = filters.size() > 0
 
 		if (this.isEmpty) {
-			for (const e of world.entity_index.dense_array) {
-				sharedId.id = e
+			for (const rawId of world.entity_index.dense_array) {
+				const id = resolveId(rawId)
 
-				if (hasFilters && !this.useFilters(sharedId)) {
+				if (hasFilters && !this.useFilters(id)) {
 					continue
 				}
 
-				if (pred(sharedId)) {
-					return [new Id(sharedId.id)] as unknown as QueryResult<Cs>
+				if (pred(id)) {
+					return [id] as unknown as QueryResult<Cs>
 				}
 			}
 
 			return undefined
 		}
 
-		for (const [e, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
-			sharedId.id = e
+		for (const [rawId, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
+			const id = resolveId(rawId)
 
-			if (hasFilters && !this.useFilters(sharedId, v1, v2, v3, v4, v5, v6, v7, v8)) {
+			if (hasFilters && !this.useFilters(id, v1, v2, v3, v4, v5, v6, v7, v8)) {
 				continue
 			}
 
-			if (pred(sharedId, v1, v2, v3, v4, v5, v6, v7, v8)) {
-				return [new Id(sharedId.id), v1, v2, v3, v4, v5, v6, v7, v8] as unknown as QueryResult<Cs>
+			if (pred(id, v1, v2, v3, v4, v5, v6, v7, v8)) {
+				return [id, v1, v2, v3, v4, v5, v6, v7, v8] as unknown as QueryResult<Cs>
 			}
 		}
 	}
@@ -170,7 +160,7 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		const results: [Id, ...unknown[]][] = []
 
 		this.forEach((e, ...components) => {
-			results.push([new Id(e['id']), ...components])
+			results.push([resolveId(e['id']), ...components])
 		})
 
 		return results as QueryResult<Cs>[]

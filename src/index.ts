@@ -1,10 +1,24 @@
 export { App } from './app'
 
-export { Id } from './id'
-export { entity, Entity } from './id/entity'
-export { component, Component } from './id/observableId/component'
-export { resource, Resource } from './id/resource'
-export { pair, Pair } from './id/observableId/pair'
+export {
+	RawId,
+	Id,
+	ObservableId,
+	entity,
+	Entity,
+	component,
+	Component,
+	resource,
+	Resource,
+	pair,
+	Pair,
+	EntityTag,
+	ComponentTag,
+	ResourceTag,
+	PairTag,
+	Wildcard,
+	ChildOf,
+} from './id'
 
 export { query, Query } from './query'
 
@@ -16,7 +30,6 @@ export { Phase, Pipeline } from '@rbxts/planck'
 
 export { useHookState } from './topoRuntime'
 
-export { Wildcard, ComponentTag, ChildOf } from './std/ids'
 export { useDeltaTime, useThrottle, useThrottledMemo } from './std/hooks'
 export {
 	PRE_STARTUP,
