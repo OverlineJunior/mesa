@@ -50,7 +50,12 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		// Empty queries are a special case where we want all entities.
 		if (this.isEmpty) {
 			world.entity_index.dense_array.forEach((rawId) => {
-				const id = resolveId(rawId)!
+				const id = resolveId(rawId)
+				// Since we're iterating over all entities, and Jecs has some
+				// standard entities Toucan doesn't support, we need to skip those.
+				if (!id) {
+					return
+				}
 
 				if (hasFilters && !this.useFilters(id)) {
 					return
@@ -119,17 +124,21 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		const hasFilters = filters.size() > 0
 
 		if (this.isEmpty) {
-			for (const rawId of world.entity_index.dense_array) {
-				const id = resolveId(rawId)!
+			world.entity_index.dense_array.forEach((rawId) => {
+				const id = resolveId(rawId)
+				// Same as in `forEach`, we need to skip unsupported standard entities.
+				if (!id) {
+					return
+				}
 
 				if (hasFilters && !this.useFilters(id)) {
-					continue
+					return
 				}
 
 				if (pred(id)) {
 					return [id] as unknown as QueryResult<Cs>
 				}
-			}
+			})
 
 			return undefined
 		}

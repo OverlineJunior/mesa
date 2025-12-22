@@ -2,7 +2,6 @@ import { world } from './world'
 import {
 	pair as jecsPair,
 	Entity as JecsEntity,
-	Component as JecsComponentTag,
 	Wildcard as JecsWildcard,
 	ChildOf as JecsChildOf,
 } from '@rbxts/jecs'
@@ -39,7 +38,7 @@ export type RejectTags<Ts extends Id[], Err extends string> = {
  * Returns the appropriate handle for `rawId`, or `undefined` if `rawId` does not
  * exist in the world or is invalid (does not reference an _entity_, _component_,
  * _resource_ or _pair_).
-*/
+ */
 export function resolveId(rawId: RawId): Entity | Component | Resource | Pair | undefined {
 	if (!world.contains(rawId)) {
 		return
@@ -54,6 +53,10 @@ export function resolveId(rawId: RawId): Entity | Component | Resource | Pair | 
 	} else if (world.has(rawId, PairTag.id)) {
 		return new Pair(rawId)
 	}
+
+	// Some standard Jecs entities might not have any of the tags above.
+	// Those are intentionally ignored in a way that the user doesn't even know
+	// about them.
 }
 
 // -----------------------------------------------------------------------------
@@ -72,7 +75,7 @@ export abstract class Id {
 		 * In order to get back the high-level handle from a raw ID, use the
 		 * `resolveId` function.
 		 */
-		public readonly id: RawId
+		public readonly id: RawId,
 	) {}
 
 	/**
@@ -213,6 +216,13 @@ export abstract class Id {
 	clear(): this {
 		world.clear(this.id)
 		return this
+	}
+
+	/**
+	 * Gets the name assigned to this _entity_.
+	 */
+	name(): string {
+		return this.get(Name)!
 	}
 
 	/**
@@ -409,8 +419,9 @@ export class Entity extends Id {
 /**
  * Spawns a new, empty _entity_ and returns it.
  */
-export function entity(): Entity {
-	return new Entity(world.entity()).set(EntityTag)
+export function entity(name?: string): Entity {
+	const rawId = world.entity()
+	return new Entity(rawId).set(EntityTag).set(Name, name ?? `Entity #${rawId}`)
 }
 
 // -----------------------------------------------------------------------------
@@ -472,11 +483,11 @@ export class Resource<Value = unknown> extends Id {
  * }
  * ```
  */
-export function resource<Value extends NonNullable<unknown>>(value: Value): Resource<Value> {
-	const id = world.component<Value>()
-	world.set(id, id, value)
+export function resource<Value extends NonNullable<unknown>>(value: Value, name?: string): Resource<Value> {
+	const rawId = world.component<Value>()
+	world.set(rawId, rawId, value)
 
-	return new Resource<Value>(id).set(ResourceTag)
+	return new Resource<Value>(rawId).set(ResourceTag).set(Name, name ?? `Resource #${rawId}`)
 }
 
 // -----------------------------------------------------------------------------
@@ -500,9 +511,9 @@ export class Component<Value = unknown> extends ObservableId<Value> {
  * const IsAlive = component()
  * ```
  */
-export function component<Value = undefined>(): Component<Value> {
-	// We don't set `ComponentTag` because Jecs already does that internally.
-	return new Component<Value>(world.component<Value>())
+export function component<Value = undefined>(name?: string): Component<Value> {
+	const rawId = world.component<Value>()
+	return new Component<Value>(rawId).set(ComponentTag).set(Name, name ?? `Component #${rawId}`)
 }
 
 // -----------------------------------------------------------------------------
@@ -557,42 +568,62 @@ export function pair<R>(relation: Component<R>, target: Entity): Pair<R>
 export function pair<T>(relation: Entity, target: Component<T>): Pair<T>
 export function pair(relation: Entity, target: Entity): Pair<undefined>
 export function pair(relation: Entity | Component, target: Entity | Component) {
-	return new Pair(jecsPair(relation.id, target.id) as unknown as RawId).set(PairTag)
+	return new Pair(jecsPair(relation.id, target.id) as unknown as RawId)
+		.set(PairTag)
+		.set(Name, `Pair(${relation.name()}, ${target.name()})`)
 }
 
 // -----------------------------------------------------------------------------
 // Standard Ids
 // -----------------------------------------------------------------------------
 
-/**
- * Built-in _component_ used to distinguish _ids_ that are _entities_.
- *
- * Automatically assigned to all _entities_ created via the `entity` function.
- */
-export const EntityTag = component()
+// `Name` and `ComponentTag` must be defined first, because `world.component()` needs
+// them to properly create components.
 
-// Jecs already has a tag given to all components, so we reuse it.
+/**
+ * Built-in _component_ used to assign a name to an _entity_.
+ *
+ * Automatically assigned to all _ids_ created by their respective functions.
+ */
+export const Name = new Component<string>(world.component())
+
 /**
  * Built-in _component_ used to distinguish _ids_ that are _components_.
  *
  * Automatically assigned to all _components_ created via the `component` function.
  */
-export const ComponentTag = new Component<undefined>(JecsComponentTag)
+export const ComponentTag = new Component<undefined>(world.component())
+
+// Sadly, we have to set these manually based on `world.component()`.
+
+Name.set(ComponentTag)
+Name.set(Name, 'Name')
+
+ComponentTag.set(ComponentTag)
+ComponentTag.set(Name, 'ComponentTag')
+
+/**
+ * Built-in _component_ used to distinguish _ids_ that are _entities_.
+ *
+ * Automatically assigned to all _entities_ created via the `entity` function.
+ */
+export const EntityTag = component('EntityTag')
 
 /**
  * Built-in _component_ used to distinguish _ids_ that are _resources_.
  *
  * Automatically assigned to all _resources_ created via the `resource` function.
  */
-export const ResourceTag = component()
+export const ResourceTag = component('ResourceTag')
 
 /**
  * Built-in _component_ used to distinguish _ids_ that are relationship _pairs_.
  *
  * Automatically assigned to all _pairs_ created via the `pair` function.
  */
-export const PairTag = component()
+export const PairTag = component('PairTag')
 
+// We reuse Jecs' built-in Wildcard component because it uses it internally.
 /**
  * Built-in _component__ meant to be used as a wildcard in relationship queries.
  *
@@ -604,9 +635,12 @@ export const PairTag = component()
  * ```
  */
 export const Wildcard = new Component<unknown>(JecsWildcard)
+Wildcard.set(ComponentTag)
+Wildcard.set(Name, 'Wildcard')
 
 // TODO! Consider making a standard system that removes previous ChildOf
 // ! relationships when setting a new one.
+// See `Wildcard`.
 /**
  * Built-in _component_ used to define parent-child relationships between _entities_.
  *
@@ -618,3 +652,5 @@ export const Wildcard = new Component<unknown>(JecsWildcard)
  * ```
  */
 export const ChildOf = new Component<undefined>(JecsChildOf)
+ChildOf.set(ComponentTag)
+ChildOf.set(Name, 'ChildOf')
