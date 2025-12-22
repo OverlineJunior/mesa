@@ -418,6 +418,8 @@ export class Entity extends Id {
 
 /**
  * Spawns a new, empty _entity_ and returns it.
+ *
+ * Additionally, a `name` can be provided for easier identification during debugging.
  */
 export function entity(name?: string): Entity {
 	const rawId = world.entity()
@@ -465,10 +467,12 @@ export class Resource<Value = unknown> extends Id {
 }
 
 /**
- * Creates a new _resource_ with the given initial value.
+ * Creates a new _resource_ with the given initial `value`.
  *
  * Resources exist independently of _entities_ (and cannot be attached to them).
  * They are useful to represent global state, such as game state, settings and so on.
+ *
+ * Additionally, a `name` can be provided for easier identification during debugging.
  *
  * # Example
  *
@@ -500,6 +504,8 @@ export class Component<Value = unknown> extends ObservableId<Value> {
 
 /**
  * Creates a new _component_.
+ *
+ * Additionally, a `name` can be provided for easier identification during debugging.
  *
  * # Example
  *
