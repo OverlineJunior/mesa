@@ -1,6 +1,5 @@
 import { Phase } from '@rbxts/planck'
-import { App } from './app'
-import { Plugin, ResolvedPlugin } from './plugin'
+import { ResolvedPlugin } from './plugin'
 
 /**
  * Systems are functions scheduled to run on specific _phases_. They usually

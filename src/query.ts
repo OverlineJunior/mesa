@@ -33,16 +33,16 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 	 * Adds a filter predicate to the _query_ that _entities_ must satisfy in order
 	 * to be included in the results.
 	 */
-	filter(predicate: (entity: Id, ...components: InferValues<Cs>) => boolean): Query<Cs> {
+	filter(predicate: (id: Id, ...components: InferValues<Cs>) => boolean): Query<Cs> {
 		this.filters.push(predicate)
 		return this
 	}
 
 	/**
-	 * Iterates over each _entity_ in the _query_, calling the provided `callback`
-	 * with the _entity_ and its corresponding _component_ values.
+	 * Iterates over each _id_ in the _query_, calling the provided `callback`
+	 * with the _id_ and its corresponding _component_ values.
 	 */
-	forEach(callback: (entity: Id, ...componentValues: InferValues<Cs>) => void): void {
+	forEach(callback: (id: Id, ...componentValues: InferValues<Cs>) => void): void {
 		const fn = callback as unknown as (e: Id, ...args: unknown[]) => void
 		const filters = this.filters as unknown as ((e: Id, ...args: unknown[]) => boolean)[]
 		const hasFilters = filters.size() > 0
@@ -80,15 +80,15 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 	}
 
 	/**
-	 * Maps each _entity_ in the _query_ to a new value using the provided
+	 * Maps each _id_ in the _query_ to a new value using the provided
 	 * `mapper` function, returning an array of the resulting values.
 	 *
 	 * # Warning
 	 *
-	 * This method allocates memory for all _entities_ in the _query_ and should be
+	 * This method allocates memory for all _ids_ in the _query_ and should be
 	 * used sparingly in performance-critical code.
 	 */
-	map<R extends defined>(mapper: (entity: Id, ...componentValues: InferValues<Cs>) => R): R[] {
+	map<R extends defined>(mapper: (id: Id, ...componentValues: InferValues<Cs>) => R): R[] {
 		const results: R[] = []
 
 		this.forEach((e, ...components) => {
@@ -114,11 +114,11 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 
 	// We duplicate a lot of code from `forEach` here so can early exit, resulting in great performance improvements.
 	/**
-	 * Finds the first _entity_ in the _query_ that satisfies the provided
-	 * `predicate` function, returning the _entity_ and its corresponding
-	 * _component_ values, or `undefined` if no such _entity_ exists.
+	 * Finds the first _id_ in the _query_ that satisfies the provided
+	 * `predicate` function, returning the _id_ and its corresponding
+	 * _component_ values, or `undefined` if no such _id_ exists.
 	 */
-	find(predicate: (entity: Id, ...componentValues: InferValues<Cs>) => boolean): QueryResult<Cs> | undefined {
+	find(predicate: (id: Id, ...componentValues: InferValues<Cs>) => boolean): QueryResult<Cs> | undefined {
 		const filters = this.filters as unknown as ((e: Id, ...args: unknown[]) => boolean)[]
 		const pred = predicate as unknown as (e: Id, ...args: unknown[]) => boolean
 		const hasFilters = filters.size() > 0

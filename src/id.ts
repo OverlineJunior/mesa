@@ -79,7 +79,7 @@ export abstract class Id {
 	) {}
 
 	/**
-	 * Assigns a relationship _pair_ to this _entity_.
+	 * Assigns a relationship _pair_ to this _id_.
 	 *
 	 * # Example
 	 *
@@ -93,7 +93,7 @@ export abstract class Id {
 	 */
 	set(tagPair: Pair<undefined>): this
 	/**
-	 * Assigns a relationship _pair_ and its _value_ to this _entity_.
+	 * Assigns a relationship _pair_ and its _value_ to this _id_.
 	 *
 	 * # Example
 	 *
@@ -110,7 +110,7 @@ export abstract class Id {
 	 */
 	set<P extends Pair<unknown>>(pair: P, value: InferValue<P>): this
 	/**
-	 * Assigns a _tag component_ to this _entity_.
+	 * Assigns a _tag component_ to this _id_.
 	 *
 	 * # Example
 	 *
@@ -122,7 +122,7 @@ export abstract class Id {
 	 */
 	set(tagComponent: Component<undefined>): this
 	/**
-	 * Assigns a _component_ and its _value_ to this _entity_.
+	 * Assigns a _component_ and its _value_ to this _id_.
 	 *
 	 * # Example
 	 *
@@ -150,7 +150,7 @@ export abstract class Id {
 	// ! Reconsider forbidding it after you find that use case again.
 	/**
 	 * Retrieves the _values_ of up to 4 _components_ or relationship _pairs_ on
-	 * this _entity_.
+	 * this _id_.
 	 *
 	 * Missing _components_ or _pairs_ will return `undefined`.
 	 *
@@ -167,7 +167,7 @@ export abstract class Id {
 	get<Args extends OneUpToFour<Component | Pair>>(
 		...componentsOrPairs: RejectTags<
 			Args,
-			"❌ 'entity.get()' cannot be used with tag components/pairs. Use 'entity.has()' instead."
+			"❌ `Id.get()' cannot be used with tag components/pairs. Use 'Id.has()' instead."
 		>
 	): Flatten<Nullable<InferValues<Args>>> {
 		return world.get(this.id, ...(componentsOrPairs.map((c) => c.id) as OneUpToFour<RawId>)) as Flatten<
@@ -176,7 +176,7 @@ export abstract class Id {
 	}
 
 	/**
-	 * Returns `true` if this _entity_ has all of the specified _components_ or
+	 * Returns `true` if this _id_ has all of the specified _components_ or
 	 * relationship _pairs_.
 	 *
 	 * A maximum of 4 _components_ or _pairs_ can be checked at once.
@@ -202,7 +202,7 @@ export abstract class Id {
 	}
 
 	/**
-	 * Removes a _component_ or relationship _pair_ from this _entity_.
+	 * Removes a _component_ or relationship _pair_ from this _id_.
 	 */
 	remove(componentOrPair: Component | Pair): this {
 		world.remove(this.id, componentOrPair.id)
@@ -210,8 +210,8 @@ export abstract class Id {
 	}
 
 	/**
-	 * Clears all _components_ and relationship _pairs_ from this _entity_, but
-	 * does not delete the _entity_.
+	 * Clears all _components_ and relationship _pairs_ from this _id_, but
+	 * does not delete the _id_.
 	 */
 	clear(): this {
 		world.clear(this.id)
@@ -219,14 +219,14 @@ export abstract class Id {
 	}
 
 	/**
-	 * Gets the name assigned to this _entity_.
+	 * Gets the name assigned to this _id_.
 	 */
 	name(): string {
 		return this.get(Name)!
 	}
 
 	/**
-	 * Gets the parent (the target of a `ChildOf` relationship) for this _entity_, if such a relationship exists.
+	 * Gets the parent (the target of a `ChildOf` relationship) for this _id_, if such a relationship exists.
 	 *
 	 * # Example
 	 *
@@ -243,7 +243,7 @@ export abstract class Id {
 	}
 
 	/**
-	 * Gets all children (the sources of `ChildOf` relationships) for this _entity_.
+	 * Gets all children (the sources of `ChildOf` relationships) for this _id_.
 	 *
 	 * # Example
 	 *
@@ -264,14 +264,14 @@ export abstract class Id {
 	}
 
 	/**
-	 * Returns `true` if this _entity_ exists.
+	 * Returns `true` if this _id_ exists.
 	 */
 	exists(): boolean {
 		return world.contains(this.id)
 	}
 
 	/**
-	 * Returns the target _entity_ of a relationship _pair_ from this _entity_.
+	 * Returns the target _id_ of a relationship _pair_ from this _id_.
 	 *
 	 * If there are multiple targets for the given relationship, the `nth` index
 	 * can be specified (starting at 0).
@@ -298,7 +298,7 @@ export abstract class Id {
 	}
 
 	/**
-	 * Returns all target _entities_ of a relationship _pair_ from this _entity_.
+	 * Returns all target _entities_ of a relationship _pair_ from this _id_.
 	 *
 	 * # Example
 	 *
@@ -357,7 +357,7 @@ export abstract class Id {
 	// }
 
 	/**
-	 * Completely removes this _entity_ from the world.
+	 * Completely removes this _id_ from the world.
 	 */
 	despawn(): void {
 		world.delete(this.id)
@@ -527,7 +527,7 @@ export class Pair<Value = unknown> extends ObservableId<Value> {
 /**
  * Creates a relationship _pair_ `relation → target` (e.g.: `Likes → Bob`),
  * where both `relation` and `target` can be either _entities_ or _components_.
- * Pairs can be assigned to an _entity_, forming something like `Alice → Likes → Bob`.
+ * Pairs can be assigned to any _id_, forming something like `Alice → Likes → Bob`.
  *
  * Like _components_, _pairs_ can hold values. The value type of a _pair_ is
  * determined by its `relation` and `target` arguments:
@@ -581,7 +581,7 @@ export function pair(relation: Entity | Component, target: Entity | Component) {
 // them to properly create components.
 
 /**
- * Built-in _component_ used to assign a name to an _entity_.
+ * Built-in _component_ used to assign a name to an _id_.
  *
  * Automatically assigned to all _ids_ created by their respective functions.
  */
