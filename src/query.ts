@@ -1,24 +1,62 @@
-import { Id, RawId, InferValues, resolveId, Component, Pair } from './id'
+import { Id, RawId, InferValues, resolveId, Component, Pair, component, pair } from './id'
 import { ZeroUpToEight } from './util'
 import { world } from './world'
-import { Query as RawQuery } from '@rbxts/jecs'
+import { pair as jecsPair } from '@rbxts/jecs'
 
-export type QueryResult<Cs extends ZeroUpToEight<Component | Pair> | []> = [Id, ...InferValues<Cs>]
+export type QueryResult<Cs extends (Component | Pair)[]> = [Id, ...InferValues<Cs>]
 
 // TODO! See how we can reintegrate the flyweight pattern, but this time one for each of
 // ! entity, component, resource and pair, otherwise queries always return a simple Id object.
 // ! Also, note that some doc comments reference a sharedId object that no longer exists.
 // ! I kept them because I plan on reintroducing that pattern.
 
-export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
-	private readonly isEmpty: boolean
-	private readonly rawQuery: RawQuery<RawId[]>
-	private readonly filters: ((entity: Id, ...components: InferValues<Cs>) => boolean)[] = []
+/*
+const Previous = component('Previous')
+
+export function queryAdded(component: Component, callback: (id: Id, value: unknown) => void) {
+	const prevPair = pair(Previous, component) as Pair<unknown>
+
+	query(component)
+		.without(prevPair)
+		.forEach((id, value) => {
+			callback(id, value)
+			id.set(prevPair, value)
+		})
+}
+
+export function queryRemoved(component: Component, callback: (id: Id, oldValue: unknown) => void) {
+	const prevPair = pair(Previous, component) as Pair<unknown>
+
+	query(prevPair)
+		.without(component)
+		.forEach((id, oldValue) => {
+			callback(id, oldValue)
+			id.remove(prevPair)
+		})
+}
+
+export function queryChanged(component: Component, callback: (id: Id, newValue: unknown, oldValue: unknown) => void) {
+	const prevPair = pair(Previous, component) as Pair<unknown>
+
+	query(component, prevPair)
+		.filter((_, newV, oldV) => newV !== oldV)
+		.forEach((id, newValue, oldValue) => {
+			callback(id, newValue, oldValue)
+			id.set(prevPair, newValue)
+		})
+}
+*/
+
+export const Previous = component('Previous')
+export const Observed = component('Observed')
+
+export class Query<Cs extends (Component | Pair)[]> {
+	private readonly includedIds: RawId[] = []
 	private readonly excludedIds: RawId[] = []
+	private readonly filters: ((entity: Id, ...components: InferValues<Cs>) => boolean)[] = []
 
 	constructor(...components: Cs) {
-		this.isEmpty = components.size() === 0
-		this.rawQuery = world.query(...components.map((c) => c.id))
+		this.includedIds = components.map((c) => c.id)
 	}
 
 	/**
@@ -38,6 +76,43 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		return this
 	}
 
+	added<C extends Component>(component: C): Query<[...Cs, C]> {
+		const prevPair = jecsPair(Previous.id, component.id)
+		this.includedIds.push(component.id)
+		this.excludedIds.push(prevPair as unknown as RawId)
+		component.set(Observed)
+		return this as unknown as Query<[...Cs, C]>
+	}
+
+	removed<C extends Component>(component: C): Query<[...Cs, C]> {
+		const prevPair = jecsPair(Previous.id, component.id)
+		this.includedIds.push(prevPair as unknown as RawId)
+		this.excludedIds.push(component.id)
+		component.set(Observed)
+		return this as unknown as Query<[...Cs, C]>
+	}
+
+	changed<C extends Component>(component: C): Query<[...Cs, C, C]> {
+		// Indices where these values will appear in the arguments list.
+		const newIndex = this.includedIds.size()
+		const oldIndex = newIndex + 1
+
+		const prevPair = jecsPair(Previous.id, component.id)
+
+		this.includedIds.push(component.id)
+		this.includedIds.push(prevPair as unknown as RawId)
+
+		component.set(Observed)
+
+		this.filters.push((id, ...args) => {
+			const newVal = args[newIndex]
+			const oldVal = args[oldIndex]
+			return newVal !== oldVal
+		})
+
+		return this as unknown as Query<[...Cs, C, C]>
+	}
+
 	/**
 	 * Iterates over each _id_ in the _query_, calling the provided `callback`
 	 * with the _id_ and its corresponding _component_ values.
@@ -48,7 +123,7 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		const hasFilters = filters.size() > 0
 
 		// Empty queries are a special case where we want all entities.
-		if (this.isEmpty) {
+		if (this.includedIds.size() === 0) {
 			world.entity_index.dense_array.forEach((rawId) => {
 				const id = resolveId(rawId)
 				// Since we're iterating over all entities, and Jecs has some
@@ -67,8 +142,10 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 			return
 		}
 
+		const rawQuery = world.query(...this.includedIds)
+
 		// Roblox-TS won't allow spreading tuples from iterators, so we have to do it manually.
-		for (const [rawId, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
+		for (const [rawId, v1, v2, v3, v4, v5, v6, v7, v8] of rawQuery.without(...this.excludedIds)) {
 			const id = resolveId(rawId)!
 
 			if (hasFilters && !this.useFilters(id, v1, v2, v3, v4, v5, v6, v7, v8)) {
@@ -123,7 +200,7 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 		const pred = predicate as unknown as (e: Id, ...args: unknown[]) => boolean
 		const hasFilters = filters.size() > 0
 
-		if (this.isEmpty) {
+		if (this.includedIds.size() === 0) {
 			world.entity_index.dense_array.forEach((rawId) => {
 				const id = resolveId(rawId)
 				// Same as in `forEach`, we need to skip unsupported standard entities.
@@ -143,7 +220,9 @@ export class Query<Cs extends ZeroUpToEight<Component | Pair> | []> {
 			return undefined
 		}
 
-		for (const [rawId, v1, v2, v3, v4, v5, v6, v7, v8] of this.rawQuery.without(...this.excludedIds)) {
+		const rawQuery = world.query(...this.includedIds)
+
+		for (const [rawId, v1, v2, v3, v4, v5, v6, v7, v8] of rawQuery.without(...this.excludedIds)) {
 			const id = resolveId(rawId)!
 
 			if (hasFilters && !this.useFilters(id, v1, v2, v3, v4, v5, v6, v7, v8)) {
