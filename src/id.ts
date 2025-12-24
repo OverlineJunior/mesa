@@ -1,24 +1,12 @@
 import { world } from './world'
-import {
-	pair as jecsPair,
-	Entity as JecsEntity,
-	Wildcard as JecsWildcard,
-	ChildOf as JecsChildOf,
-} from '@rbxts/jecs'
+import { Entity as JecsEntity, Wildcard as JecsWildcard, ChildOf as JecsChildOf } from '@rbxts/jecs'
 import { Flatten, Nullable, OneUpToFour } from './util'
+import type { Pair } from './pair'
 
 /**
  * The raw Jecs ID type.
  */
 export type RawId = JecsEntity
-
-export type IsTag<T extends Id> = T extends Entity
-	? true
-	: T extends Component<undefined>
-		? true
-		: T extends Pair<undefined>
-			? true
-			: false
 
 // We use this as a key to a "phantom property" on Id subclasses to represent
 // their value type. With this, we:
@@ -30,16 +18,12 @@ export type InferValue<T> = T extends { [VALUE_SYMBOL]: infer V } ? V : never
 
 export type InferValues<Ts> = { [K in keyof Ts]: InferValue<Ts[K]> }
 
-export type RejectTags<Ts extends Id[], Err extends string> = {
-	[K in keyof Ts]: IsTag<Ts[K]> extends true ? Err : Ts[K]
-}
-
 /**
  * Returns the appropriate handle for `rawId`, or `undefined` if `rawId` does not
- * exist in the world or is invalid (does not reference an _entity_, _component_,
- * _resource_ or _pair_).
+ * exist in the world or is invalid (does not reference an _entity_, _component_
+ * or _resource_).
  */
-export function resolveId(rawId: RawId): Entity | Component | Resource | Pair | undefined {
+export function resolveId(rawId: RawId): Entity | Component | Resource | undefined {
 	if (!world.contains(rawId)) {
 		return
 	}
@@ -50,8 +34,6 @@ export function resolveId(rawId: RawId): Entity | Component | Resource | Pair | 
 		return new Component(rawId)
 	} else if (world.has(rawId, ResourceTag.id)) {
 		return new Resource(rawId)
-	} else if (world.has(rawId, PairTag.id)) {
-		return new Pair(rawId)
 	}
 
 	// Some standard Jecs entities might not have any of the tags above.
@@ -108,7 +90,7 @@ export abstract class Id {
 	 *     .set(pair(Owns, perfume), 5)
 	 * ```
 	 */
-	set<P extends Pair<unknown>>(pair: P, value: InferValue<P>): this
+	set<P extends Pair>(pair: P, value: InferValue<P>): this
 	/**
 	 * Assigns a _tag component_ to this _id_.
 	 *
@@ -136,11 +118,11 @@ export abstract class Id {
 	 * ```
 	 */
 	set<V>(component: Component<V>, value: NoInfer<V>): this
-	set(componentOrPair: Id, value?: unknown) {
+	set(componentOrPair: Component | Pair, value?: unknown) {
 		if (value === undefined) {
-			world.add(this.id, componentOrPair.id)
+			world.add(this.id, (componentOrPair as Component).id)
 		} else {
-			world.set(this.id, componentOrPair.id, value)
+			world.set(this.id, (componentOrPair as Component).id, value)
 		}
 
 		return this
@@ -164,15 +146,11 @@ export abstract class Id {
 	 * const carCount = myEntity.get(pair(Owns, car))
 	 * ```
 	 */
-	get<Args extends OneUpToFour<Component | Pair>>(
-		...componentsOrPairs: RejectTags<
-			Args,
-			"❌ `Id.get()' cannot be used with tag components/pairs. Use 'Id.has()' instead."
-		>
-	): Flatten<Nullable<InferValues<Args>>> {
-		return world.get(this.id, ...(componentsOrPairs.map((c) => c.id) as OneUpToFour<RawId>)) as Flatten<
-			Nullable<InferValues<Args>>
-		>
+	get<Args extends OneUpToFour<Component | Pair>>(...componentsOrPairs: Args): Flatten<Nullable<InferValues<Args>>> {
+		return world.get(
+			this.id,
+			...(componentsOrPairs.map((c) => (c as Component).id) as OneUpToFour<RawId>),
+		) as Flatten<Nullable<InferValues<Args>>>
 	}
 
 	/**
@@ -198,14 +176,14 @@ export abstract class Id {
 	 * ```
 	 */
 	has(...componentsOrPairs: OneUpToFour<Component | Pair>): boolean {
-		return world.has(this.id, ...(componentsOrPairs.map((c) => c.id) as OneUpToFour<RawId>))
+		return world.has(this.id, ...(componentsOrPairs.map((c) => (c as Component).id) as OneUpToFour<RawId>))
 	}
 
 	/**
 	 * Removes a _component_ or relationship _pair_ from this _id_.
 	 */
 	remove(componentOrPair: Component | Pair): this {
-		world.remove(this.id, componentOrPair.id)
+		world.remove(this.id, (componentOrPair as Component).id)
 		return this
 	}
 
@@ -523,63 +501,6 @@ export function component<Value = undefined>(name?: string): Component<Value> {
 }
 
 // -----------------------------------------------------------------------------
-// Pair
-// -----------------------------------------------------------------------------
-
-export class Pair<Value = unknown> extends ObservableId<Value> {
-	declare [VALUE_SYMBOL]: Value
-}
-
-/**
- * Creates a relationship _pair_ `relation → target` (e.g.: `Likes → Bob`),
- * where both `relation` and `target` can be either _entities_ or _components_.
- * Pairs can be assigned to any _id_, forming something like `Alice → Likes → Bob`.
- *
- * Like _components_, _pairs_ can hold values. The value type of a _pair_ is
- * determined by its `relation` and `target` arguments:
- *
- * - If `relation` is a _component_ with a value, then the _pair_ takes the same value type;
- * - Else if `target` is a _component_ with a value, then the _pair_ takes the same value type;
- * - Otherwise, the _pair_ is a _tag pair_ and does not hold a value.
- *
- * # Example
- *
- * ```ts
- * const Likes = component()
- * const Owns = component<number>()
- *
- * const car = entity()
- * const bob = entity()
- *     // Because neither `Likes` nor `car` hold values, we have no value to assign.
- *     .set(pair(Likes, car))
- *     // Because `Owns` holds a number value, the pair takes a number value.
- *     .set(pair(Owns, car), 2)
- * ```
- *
- * # Example 2
- *
- * ```ts
- * const Begin = component()
- * const End = component()
- * const Position = component<Vector3>()
- *
- * const line = entity()
- *     // Because `Begin` and `End` hold no values, those pairs take the value from `Position`.
- *     .set(pair(Begin, Position), new Vector3(0, 0, 0))
- *     .set(pair(End, Position), new Vector3(10, 0, 0))
- * ```
- */
-export function pair<R, T>(relation: Component<R>, target: Component<T>): Pair<R>
-export function pair<R>(relation: Component<R>, target: Entity): Pair<R>
-export function pair<T>(relation: Entity, target: Component<T>): Pair<T>
-export function pair(relation: Entity, target: Entity): Pair<undefined>
-export function pair(relation: Entity | Component, target: Entity | Component) {
-	return new Pair(jecsPair(relation.id, target.id) as unknown as RawId)
-		.set(PairTag)
-		.set(Name, `Pair(${relation.name()}, ${target.name()})`)
-}
-
-// -----------------------------------------------------------------------------
 // Standard Ids
 // -----------------------------------------------------------------------------
 
@@ -621,13 +542,6 @@ export const EntityTag = component('EntityTag')
  * Automatically assigned to all _resources_ created via the `resource` function.
  */
 export const ResourceTag = component('ResourceTag')
-
-/**
- * Built-in _component_ used to distinguish _ids_ that are relationship _pairs_.
- *
- * Automatically assigned to all _pairs_ created via the `pair` function.
- */
-export const PairTag = component('PairTag')
 
 // We reuse Jecs' built-in Wildcard component because it uses it internally.
 /**

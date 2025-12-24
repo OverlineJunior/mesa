@@ -1,4 +1,5 @@
-import { Id, RawId, InferValues, resolveId, Component, Pair, component, pair } from './id'
+import { Id, RawId, InferValues, resolveId, Component, component } from './id'
+import { Pair } from './pair'
 import { ZeroUpToEight } from './util'
 import { world } from './world'
 import { pair as jecsPair } from '@rbxts/jecs'
@@ -17,10 +18,10 @@ export class Query<Cs extends (Component | Pair)[]> {
 	private readonly includedIds: RawId[] = []
 	private readonly excludedIds: RawId[] = []
 	private readonly filters: ((entity: Id, ...components: InferValues<Cs>) => boolean)[] = []
-	private observerCallback?: ((id: Id, ...values: unknown[]) => void) = undefined
+	private observerCallback?: (id: Id, ...values: unknown[]) => void = undefined
 
 	constructor(...components: Cs) {
-		this.includedIds = components.map((c) => c.id)
+		this.includedIds = components.map((c) => (c as Component).id) as RawId[]
 	}
 
 	/**

@@ -10,12 +10,9 @@ export {
 	Component,
 	resource,
 	Resource,
-	pair,
-	Pair,
 	EntityTag,
 	ComponentTag,
 	ResourceTag,
-	PairTag,
 	Wildcard,
 	ChildOf,
 } from './id'
@@ -23,6 +20,8 @@ export {
 export { query, Query } from './query'
 
 export { System } from './system'
+
+export { pair, Pair } from './pair'
 
 export { Plugin } from './plugin'
 
