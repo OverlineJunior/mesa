@@ -10,43 +10,6 @@ export type QueryResult<Cs extends (Component | Pair)[]> = [Id, ...InferValues<C
 // ! Also, note that some doc comments reference a sharedId object that no longer exists.
 // ! I kept them because I plan on reintroducing that pattern.
 
-/*
-const Previous = component('Previous')
-
-export function queryAdded(component: Component, callback: (id: Id, value: unknown) => void) {
-	const prevPair = pair(Previous, component) as Pair<unknown>
-
-	query(component)
-		.without(prevPair)
-		.forEach((id, value) => {
-			callback(id, value)
-			id.set(prevPair, value)
-		})
-}
-
-export function queryRemoved(component: Component, callback: (id: Id, oldValue: unknown) => void) {
-	const prevPair = pair(Previous, component) as Pair<unknown>
-
-	query(prevPair)
-		.without(component)
-		.forEach((id, oldValue) => {
-			callback(id, oldValue)
-			id.remove(prevPair)
-		})
-}
-
-export function queryChanged(component: Component, callback: (id: Id, newValue: unknown, oldValue: unknown) => void) {
-	const prevPair = pair(Previous, component) as Pair<unknown>
-
-	query(component, prevPair)
-		.filter((_, newV, oldV) => newV !== oldV)
-		.forEach((id, newValue, oldValue) => {
-			callback(id, newValue, oldValue)
-			id.set(prevPair, newValue)
-		})
-}
-*/
-
 export const Previous = component('Previous')
 export const Observed = component('Observed')
 
@@ -54,6 +17,7 @@ export class Query<Cs extends (Component | Pair)[]> {
 	private readonly includedIds: RawId[] = []
 	private readonly excludedIds: RawId[] = []
 	private readonly filters: ((entity: Id, ...components: InferValues<Cs>) => boolean)[] = []
+	private observerCallback?: ((id: Id, ...values: unknown[]) => void) = undefined
 
 	constructor(...components: Cs) {
 		this.includedIds = components.map((c) => c.id)
@@ -77,10 +41,18 @@ export class Query<Cs extends (Component | Pair)[]> {
 	}
 
 	added<C extends Component>(component: C): Query<[...Cs, C]> {
+		const valueIdx = this.includedIds.size()
+
 		const prevPair = jecsPair(Previous.id, component.id)
 		this.includedIds.push(component.id)
 		this.excludedIds.push(prevPair as unknown as RawId)
 		component.set(Observed)
+
+		this.observerCallback = (id, ...values) => {
+			const value = values[valueIdx] as defined
+			world.set(id.id, prevPair, value)
+		}
+
 		return this as unknown as Query<[...Cs, C]>
 	}
 
@@ -89,6 +61,11 @@ export class Query<Cs extends (Component | Pair)[]> {
 		this.includedIds.push(prevPair as unknown as RawId)
 		this.excludedIds.push(component.id)
 		component.set(Observed)
+
+		this.observerCallback = (id) => {
+			world.remove(id.id, prevPair)
+		}
+
 		return this as unknown as Query<[...Cs, C]>
 	}
 
@@ -104,11 +81,16 @@ export class Query<Cs extends (Component | Pair)[]> {
 
 		component.set(Observed)
 
-		this.filters.push((id, ...args) => {
+		this.filters.push((_, ...args) => {
 			const newVal = args[newIndex]
 			const oldVal = args[oldIndex]
 			return newVal !== oldVal
 		})
+
+		this.observerCallback = (id, ...values) => {
+			const newValue = values[newIndex] as defined
+			world.set(id.id, prevPair, newValue)
+		}
 
 		return this as unknown as Query<[...Cs, C, C]>
 	}
@@ -153,6 +135,8 @@ export class Query<Cs extends (Component | Pair)[]> {
 			}
 
 			fn(id, v1, v2, v3, v4, v5, v6, v7, v8)
+
+			this.observerCallback?.(id, v1, v2, v3, v4, v5, v6, v7, v8)
 		}
 	}
 
