@@ -6,11 +6,6 @@ import { pair as jecsPair } from '@rbxts/jecs'
 
 export type QueryResult<Cs extends (Component | Pair)[]> = [Id, ...InferValues<Cs>]
 
-// TODO! See how we can reintegrate the flyweight pattern, but this time one for each of
-// ! entity, component, resource and pair, otherwise queries always return a simple Id object.
-// ! Also, note that some doc comments reference a sharedId object that no longer exists.
-// ! I kept them because I plan on reintroducing that pattern.
-
 export const Previous = component('Previous')
 export const Observed = component('Observed')
 
@@ -27,8 +22,8 @@ export class Query<Cs extends (Component | Pair)[]> {
 	/**
 	 * Excludes _entities_ with the specified _components_ from the _query_ results.
 	 */
-	without(...components: Component[]): Query<Cs> {
-		components.forEach((c) => this.excludedIds.push(c.id))
+	without(...components: (Component | Pair)[]): Query<Cs> {
+		components.forEach((c) => this.excludedIds.push((c as Component).id))
 		return this
 	}
 
@@ -42,17 +37,11 @@ export class Query<Cs extends (Component | Pair)[]> {
 	}
 
 	added<C extends Component>(component: C): Query<[...Cs, C]> {
-		const valueIdx = this.includedIds.size()
-
 		const prevPair = jecsPair(Previous.id, component.id)
 		this.includedIds.push(component.id)
 		this.excludedIds.push(prevPair as unknown as RawId)
-		component.set(Observed)
 
-		this.observerCallback = (id, ...values) => {
-			const value = values[valueIdx] as defined
-			world.set(id.id, prevPair, value)
-		}
+		component.set(Observed)
 
 		return this as unknown as Query<[...Cs, C]>
 	}
@@ -61,11 +50,8 @@ export class Query<Cs extends (Component | Pair)[]> {
 		const prevPair = jecsPair(Previous.id, component.id)
 		this.includedIds.push(prevPair as unknown as RawId)
 		this.excludedIds.push(component.id)
-		component.set(Observed)
 
-		this.observerCallback = (id) => {
-			world.remove(id.id, prevPair)
-		}
+		component.set(Observed)
 
 		return this as unknown as Query<[...Cs, C]>
 	}
@@ -76,7 +62,6 @@ export class Query<Cs extends (Component | Pair)[]> {
 		const oldIndex = newIndex + 1
 
 		const prevPair = jecsPair(Previous.id, component.id)
-
 		this.includedIds.push(component.id)
 		this.includedIds.push(prevPair as unknown as RawId)
 
@@ -87,11 +72,6 @@ export class Query<Cs extends (Component | Pair)[]> {
 			const oldVal = args[oldIndex]
 			return newVal !== oldVal
 		})
-
-		this.observerCallback = (id, ...values) => {
-			const newValue = values[newIndex] as defined
-			world.set(id.id, prevPair, newValue)
-		}
 
 		return this as unknown as Query<[...Cs, C, C]>
 	}
@@ -264,35 +244,6 @@ export class Query<Cs extends (Component | Pair)[]> {
 	}
 }
 
-/**
- * Creates a new _query_ for _entities_ that have all of the specified
- * _components_ or relationship _pairs_.
- *
- * Special cases:
- * - Queries with no _components_ will match all _entities_;
- * - The `Wildcard` standard component can be used in queries with relationship
- * _pairs_ to match any `relation` or `target`.
- *
- * # Example
- *
- * ```ts
- * // Query for entities with Position and Velocity components.
- * const Position = component<Vector3>()
- * const Velocity = component<Vector3>()
- * query(Position, Velocity).forEach((entity, pos, vel) => { ... })
- *
- * // Query for all entities.
- * query().forEach((entity) => { ... })
- *
- * // Query for entities that like `car`.
- * const Likes = component()
- * const car = entity()
- * query(pair(Likes, car)).forEach((entity) => { ... })
- *
- * // Query for entities that like anything.
- * query(pair(Likes, Wildcard)).forEach((entity) => { ... })
- * ```
- */
 export function query<Cs extends ZeroUpToEight<Component | Pair>>(...components: Cs): Query<Cs> {
 	return new Query<Cs>(...components)
 }
