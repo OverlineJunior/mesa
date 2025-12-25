@@ -197,10 +197,10 @@ export abstract class Id {
 	}
 
 	/**
-	 * Gets the name assigned to this _id_.
+	 * Gets the label assigned to this _id_.
 	 */
-	name(): string {
-		return this.get(Name)!
+	label(): string {
+		return this.get(Label)!
 	}
 
 	/**
@@ -397,11 +397,11 @@ export class Entity extends Id {
 /**
  * Spawns a new, empty _entity_ and returns it.
  *
- * Additionally, a `name` can be provided for easier identification during debugging.
+ * Additionally, a `label` can be provided for easier identification during debugging.
  */
-export function entity(name?: string): Entity {
+export function entity(label?: string): Entity {
 	const rawId = world.entity()
-	return new Entity(rawId).set(EntityTag).set(Name, name ?? `Entity #${rawId}`)
+	return new Entity(rawId).set(EntityTag).set(Label, label ?? `Entity #${rawId}`)
 }
 
 // -----------------------------------------------------------------------------
@@ -450,7 +450,7 @@ export class Resource<Value = unknown> extends Id {
  * Resources exist independently of _entities_ (and cannot be attached to them).
  * They are useful to represent global state, such as game state, settings and so on.
  *
- * Additionally, a `name` can be provided for easier identification during debugging.
+ * Additionally, a `label` can be provided for easier identification during debugging.
  *
  * # Example
  *
@@ -465,11 +465,11 @@ export class Resource<Value = unknown> extends Id {
  * }
  * ```
  */
-export function resource<Value extends NonNullable<unknown>>(value: Value, name?: string): Resource<Value> {
+export function resource<Value extends NonNullable<unknown>>(value: Value, label?: string): Resource<Value> {
 	const rawId = world.component<Value>()
 	world.set(rawId, rawId, value)
 
-	return new Resource<Value>(rawId).set(ResourceTag).set(Name, name ?? `Resource #${rawId}`)
+	return new Resource<Value>(rawId).set(ResourceTag).set(Label, label ?? `Resource #${rawId}`)
 }
 
 // -----------------------------------------------------------------------------
@@ -483,7 +483,7 @@ export class Component<Value = unknown> extends ObservableId<Value> {
 /**
  * Creates a new _component_.
  *
- * Additionally, a `name` can be provided for easier identification during debugging.
+ * Additionally, a `label` can be provided for easier identification during debugging.
  *
  * # Example
  *
@@ -495,24 +495,24 @@ export class Component<Value = unknown> extends ObservableId<Value> {
  * const IsAlive = component()
  * ```
  */
-export function component<Value = undefined>(name?: string): Component<Value> {
+export function component<Value = undefined>(label?: string): Component<Value> {
 	const rawId = world.component<Value>()
-	return new Component<Value>(rawId).set(ComponentTag).set(Name, name ?? `Component #${rawId}`)
+	return new Component<Value>(rawId).set(ComponentTag).set(Label, label ?? `Component #${rawId}`)
 }
 
 // -----------------------------------------------------------------------------
 // Standard Ids
 // -----------------------------------------------------------------------------
 
-// `Name` and `ComponentTag` must be defined first, because `world.component()` needs
+// `Label` and `ComponentTag` must be defined first, because `world.component()` needs
 // them to properly create components.
 
 /**
- * Built-in _component_ used to assign a name to an _id_.
+ * Built-in _component_ used to assign a label to an _id_.
  *
  * Automatically assigned to all _ids_ created by their respective functions.
  */
-export const Name = new Component<string>(world.component())
+export const Label = new Component<string>(world.component())
 
 /**
  * Built-in _component_ used to distinguish _ids_ that are _components_.
@@ -523,11 +523,11 @@ export const ComponentTag = new Component<undefined>(world.component())
 
 // Sadly, we have to set these manually based on `world.component()`.
 
-Name.set(ComponentTag)
-Name.set(Name, 'Name')
+Label.set(ComponentTag)
+Label.set(Label, 'Label')
 
 ComponentTag.set(ComponentTag)
-ComponentTag.set(Name, 'ComponentTag')
+ComponentTag.set(Label, 'ComponentTag')
 
 /**
  * Built-in _component_ used to distinguish _ids_ that are _entities_.
@@ -556,7 +556,7 @@ export const ResourceTag = component('ResourceTag')
  */
 export const Wildcard = new Component<unknown>(JecsWildcard)
 Wildcard.set(ComponentTag)
-Wildcard.set(Name, 'Wildcard')
+Wildcard.set(Label, 'Wildcard')
 
 // TODO! Consider making a standard system that removes previous ChildOf
 // ! relationships when setting a new one.
@@ -573,4 +573,4 @@ Wildcard.set(Name, 'Wildcard')
  */
 export const ChildOf = new Component<undefined>(JecsChildOf)
 ChildOf.set(ComponentTag)
-ChildOf.set(Name, 'ChildOf')
+ChildOf.set(Label, 'ChildOf')
