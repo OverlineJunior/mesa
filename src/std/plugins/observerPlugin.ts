@@ -4,7 +4,7 @@ import { Pair, pair } from '../../pair'
 import { Observed, Previous, query } from '../../query'
 import { ABSOLUTE_LAST } from '../phases'
 
-function foo() {
+function syncObserved() {
 	query(Observed).forEach((_id) => {
 		const comp = _id as Component
 		const prevPair = pair(Previous, comp) as Pair<unknown>
@@ -33,6 +33,6 @@ function foo() {
 }
 export class ObserverPlugin {
 	build(app: App) {
-		app.addSystems(ABSOLUTE_LAST, [foo])
+		app.addSystems(ABSOLUTE_LAST, [syncObserved])
 	}
 }
