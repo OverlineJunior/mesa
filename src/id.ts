@@ -197,6 +197,20 @@ export abstract class Id {
 	}
 
 	/**
+	 * Returns all _components_ associated with this _id_.
+	 */
+	components(): Component[] {
+		const components: Component[] = []
+		const record = world.entity_index.sparse_array[this.id - 1]
+
+		record.archetype.types.forEach((compId) => {
+			components.push(new Component(compId as RawId))
+		})
+
+		return components
+	}
+
+	/**
 	 * Gets the label assigned to this _id_.
 	 */
 	label(): string {
